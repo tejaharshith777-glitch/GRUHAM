@@ -34,8 +34,8 @@ const pricingPlans = [
     icon: Zap,
     features: [
       "100 AI design generations/month",
-      "All 50+ design styles",
-      "HD quality renders",
+      "All 6 design styles",
+      "High quality renders",
       "All room types",
       "Before/after comparisons",
       "Download in multiple formats",
@@ -53,14 +53,12 @@ const pricingPlans = [
     icon: Crown,
     features: [
       "Unlimited AI generations",
-      "All 50+ design styles",
-      "4K quality renders",
+      "All 6 design styles",
+      "High quality renders",
       "All room types",
-      "Custom style training",
-      "White-label exports",
-      "API access",
-      "Dedicated support",
-      "Team collaboration",
+      "Download & share",
+      "Priority support",
+      "Team collaboration (coming soon)",
     ],
     cta: "Contact Sales",
     popular: false,
@@ -92,9 +90,12 @@ export default function Pricing() {
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-4">
             Start free and upgrade as you grow. All plans include our core AI design features.
           </p>
+          <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2 text-sm text-amber-800">
+            💳 Payments integration coming soon — sign up free now and credits will be awarded on launch
+          </div>
         </motion.div>
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {pricingPlans.map((e, t) => (

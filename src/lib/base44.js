@@ -67,14 +67,14 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 /** Demo data, so every screen has something to show on a fresh install. */
 const SEED = {
   Contractor: [
-    { name: "Sharma Constructions", city: "Mumbai", area: "Andheri West", specialization: "Civil Construction", rating: 4.8, experience: 18, projects: 142, verified: true, phone: "+91 98200 11223", email: "contact@sharmaconstructions.in", bio: "Full-service civil contractor specialising in turnkey villas and row houses." },
-    { name: "Kumar Interiors", city: "Bengaluru", area: "Indiranagar", specialization: "Interior Design", rating: 4.7, experience: 12, projects: 96, verified: true, phone: "+91 98450 33445", email: "hello@kumarinteriors.com", bio: "Award-winning interior studio for apartments and duplex homes." },
-    { name: "Naidu Builders", city: "Hyderabad", area: "Gachibowli", specialization: "Architecture", rating: 4.6, experience: 22, projects: 210, verified: true, phone: "+91 97000 55667", email: "projects@naidubuilders.in", bio: "Architect-led construction with an in-house structural team." },
-    { name: "Iyer Homes", city: "Chennai", area: "Adyar", specialization: "Civil Construction", rating: 4.9, experience: 15, projects: 88, verified: true, phone: "+91 98844 77889", email: "iyerhomes@gmail.com", bio: "Traditional and contemporary homes planned around Vaastu." },
-    { name: "Reddy Electricals & Works", city: "Hyderabad", area: "Madhapur", specialization: "Electrical Work", rating: 4.4, experience: 9, projects: 130, verified: false, phone: "+91 90100 22334", email: "reddyworks@gmail.com", bio: "Complete wiring, panels and home-automation wiring." },
-    { name: "Desai Plumbing Solutions", city: "Pune", area: "Kothrud", specialization: "Plumbing", rating: 4.5, experience: 11, projects: 174, verified: true, phone: "+91 98220 44556", email: "desaiplumbing@gmail.com", bio: "Water supply, drainage and bathroom fitting specialists." },
-    { name: "Ghosh Design Studio", city: "Kolkata", area: "Salt Lake", specialization: "Exterior Design", rating: 4.3, experience: 7, projects: 54, verified: false, phone: "+91 90380 66778", email: "studio@ghoshdesign.in", bio: "Facades, terraces and landscape elevations." },
-    { name: "Menon Contractors", city: "Kochi", area: "Kakkanad", specialization: "Civil Construction", rating: 4.6, experience: 16, projects: 121, verified: true, phone: "+91 99460 88990", email: "menoncontractors@gmail.com", bio: "Quality-first builder for Kerala-style and modern homes." },
+    { name: "Sharma Constructions", city: "Mumbai", area: "Andheri West", specialization: "Civil Construction", rating: 4.8, experience: 18, projects: 142, verified: false, phone: "+91 XXXXX XXXXX", email: "hidden until verification", bio: "Full-service civil contractor specialising in turnkey villas and row houses." },
+    { name: "Kumar Interiors", city: "Bengaluru", area: "Indiranagar", specialization: "Interior Design", rating: 4.7, experience: 12, projects: 96, verified: false, phone: "+91 XXXXX XXXXX", email: "hidden until verification", bio: "Award-winning interior studio for apartments and duplex homes." },
+    { name: "Naidu Builders", city: "Hyderabad", area: "Gachibowli", specialization: "Architecture", rating: 4.6, experience: 22, projects: 210, verified: false, phone: "+91 XXXXX XXXXX", email: "hidden until verification", bio: "Architect-led construction with an in-house structural team." },
+    { name: "Iyer Homes", city: "Chennai", area: "Adyar", specialization: "Civil Construction", rating: 4.9, experience: 15, projects: 88, verified: false, phone: "+91 XXXXX XXXXX", email: "hidden until verification", bio: "Traditional and contemporary homes planned around Vaastu." },
+    { name: "Reddy Electricals & Works", city: "Hyderabad", area: "Madhapur", specialization: "Electrical Work", rating: 4.4, experience: 9, projects: 130, verified: false, phone: "+91 XXXXX XXXXX", email: "hidden until verification", bio: "Complete wiring, panels and home-automation wiring." },
+    { name: "Desai Plumbing Solutions", city: "Pune", area: "Kothrud", specialization: "Plumbing", rating: 4.5, experience: 11, projects: 174, verified: false, phone: "+91 XXXXX XXXXX", email: "hidden until verification", bio: "Water supply, drainage and bathroom fitting specialists." },
+    { name: "Ghosh Design Studio", city: "Kolkata", area: "Salt Lake", specialization: "Exterior Design", rating: 4.3, experience: 7, projects: 54, verified: false, phone: "+91 XXXXX XXXXX", email: "hidden until verification", bio: "Facades, terraces and landscape elevations." },
+    { name: "Menon Contractors", city: "Kochi", area: "Kakkanad", specialization: "Civil Construction", rating: 4.6, experience: 16, projects: 121, verified: false, phone: "+91 XXXXX XXXXX", email: "hidden until verification", bio: "Quality-first builder for Kerala-style and modern homes." },
   ],
   Appointment: [
     { customer_name: "Ananya Rao", customer_email: "ananya@example.com", customer_phone: "+91 98111 22334", service_name: "Full House Design Consultation", appointment_date: "2024-11-12", preferred_time: "11:00", status: "confirmed", message: "Looking to design a 3 BHK on a 2400 sq ft plot.", created_date: "2024-11-02T09:12:00.000Z" },
@@ -259,7 +259,7 @@ function pickImage(prompt) {
   else if (/compound|garden|lawn|parking|boundary|fence/.test(p)) pool = IMAGE_SETS.compound;
   else if (/interior|room|kitchen|bedroom|living|hall|bath/.test(p)) pool = IMAGE_SETS.interior;
   const id = pool[hash(prompt) % pool.length];
-  return `https://images.unsplash.com/${id}?w=1200&q=80`;
+  return `https://images.unsplash.com/${id}?w=1280&q=70&auto=format&fit=crop`;
 }
 
 /* ----------------------------------------------------------- language model */
@@ -314,7 +314,7 @@ const TOPICS = [
   { re: /save|library|my design|download/, page: "DesignLibrary",
     reply: "Everything you generate is saved to My Designs, where you can favourite, re-open, share or download it. Want me to show your library?" },
   { re: /style|modern|scandinavian|industrial|bohemian|coastal|traditional/, page: "Designer",
-    reply: "You can explore 50+ interior styles in the Designer - pick one and apply it to your own room photo instantly. Which style are you leaning towards?" },
+    reply: "You can explore 6 interior design styles in the Designer — pick one and apply it to your own room photo. Which style are you leaning towards?" },
 ];
 
 function assistantReply(prompt) {

@@ -9,9 +9,11 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "../lib/base44";
+import { computeBOQ, inrShort } from "../lib/boq";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Disclaimer from "@/components/Disclaimer";
 
 const materials = [
   {
@@ -500,6 +502,8 @@ export default function Materials() {
     [m, y] = useState("standard"),
     [x, j] = useState(null),
     [_, S] = useState(false),
+    [emiRate, setEmiRate] = useState(8.5),
+    [emiTenure, setEmiTenure] = useState(20),
     N = materials.filter((T) => {
       const P =
           T.name.toLowerCase().includes(e.toLowerCase()) ||
@@ -507,86 +511,43 @@ export default function Materials() {
         B = n === "All" || T.category === n;
       return P && B;
     }),
-    w = async () => {
+    w = () => {
       if (h) {
         S(true);
-        try {
-          const T = await base44.integrations.Core.InvokeLLM({
-            prompt: `Generate a construction cost estimate for an Indian residential house:
-Built-up area: ${h} sq ft
-Construction type: ${m} (budget/standard/premium/luxury)
-
-Provide a detailed breakdown in JSON format with:
-1. Structural work (foundation, RCC, walls)
-2. Flooring cost
-3. Plumbing cost
-4. Electrical cost
-5. Painting cost
-6. Doors & windows
-7. Kitchen
-8. Misc & finishing
-9. Labour charges
-10. Total estimated cost
-
-Use current Indian market rates (2024). All amounts in INR.`,
-            response_json_schema: {
-              type: "object",
-              properties: {
-                structural: {
-                  type: "number",
-                },
-                flooring: {
-                  type: "number",
-                },
-                plumbing: {
-                  type: "number",
-                },
-                electrical: {
-                  type: "number",
-                },
-                painting: {
-                  type: "number",
-                },
-                doors_windows: {
-                  type: "number",
-                },
-                kitchen: {
-                  type: "number",
-                },
-                misc_finishing: {
-                  type: "number",
-                },
-                labour: {
-                  type: "number",
-                },
-                total: {
-                  type: "number",
-                },
-                per_sqft_cost: {
-                  type: "number",
-                },
-                notes: {
-                  type: "string",
-                },
-              },
-            },
-          });
-          j(T);
-        } catch (T) {
-          console.error("Estimate error:", T);
-        }
-        S(false);
+        setTimeout(() => {
+          const sqft = parseFloat(h);
+          if (sqft > 0) {
+            const boq = computeBOQ({ builtUpArea: sqft, city: o, finish: m });
+            // Adapt boq to what the UI expects
+            j({
+              structural: boq.structural,
+              flooring: boq.flooring,
+              plumbing: boq.plumbing,
+              electrical: boq.electrical,
+              painting: boq.painting,
+              doors_windows: boq.doors_windows,
+              kitchen: boq.kitchen || 0,
+              misc_finishing: boq.misc,
+              labour: boq.labour_estimate,
+              total: boq.band_low,
+              per_sqft_cost: Math.round(boq.band_low / sqft),
+              notes: `Estimate based on ${sqft} sq ft in ${o} with ${m} finish.`
+            });
+          }
+          S(false);
+        }, 500);
       }
     },
-    C = (T) =>
-      T >= 1e7
-        ? `₹${(T / 1e7).toFixed(2)} Cr`
-        : T >= 1e5
-          ? `₹${(T / 1e5).toFixed(2)} L`
-          : `₹${T.toLocaleString("en-IN")}`;
+    calcEMI = (principal) => {
+      const r = emiRate / 12 / 100;
+      const n = emiTenure * 12;
+      return Math.round((principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1));
+    },
+    C = (T) => inrShort(T);
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <Disclaimer variant="cost" />
         <motion.div
           initial={{
             opacity: 0,
@@ -606,8 +567,11 @@ Use current Indian market rates (2024). All amounts in INR.`,
             Construction Materials
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Browse building materials with current Indian market prices and estimate your
-            construction cost
+            Indicative market rates for common construction materials across Indian cities.
+            Verify with local dealers before purchasing.
+          </p>
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 mt-4 inline-block">
+            ⚠️ Rates are indicative, sourced from public market data. Last updated: August 2026. Not a dealer quotation.
           </p>
         </motion.div>
         <div className="flex justify-center mb-8">
@@ -725,15 +689,42 @@ Use current Indian market rates (2024). All amounts in INR.`,
                       </div>
                     ))}
                   </div>
-                  <div className="bg-[#B8860B] rounded-xl p-4 text-white text-center">
-                    <p className="text-sm opacity-80">Estimated Total Cost</p>
-                    <p className="text-3xl font-bold">{C(x.total)}</p>
-                    <p className="text-sm opacity-80 mt-1">
-                      ≈ ₹{x.per_sqft_cost?.toLocaleString("en-IN")}
-                      /sq ft
-                    </p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-[#B8860B] rounded-xl p-4 text-white text-center">
+                      <p className="text-sm opacity-80">Estimated Total Cost</p>
+                      <p className="text-3xl font-bold">{C(x.total)}</p>
+                      <p className="text-sm opacity-80 mt-1">
+                        ≈ ₹{x.per_sqft_cost?.toLocaleString("en-IN")}
+                        /sq ft
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 border border-[#B8860B]/20">
+                      <p className="text-sm text-gray-500 text-center mb-2">EMI Estimator</p>
+                      <div className="flex gap-2 mb-3">
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500">Rate (%)</label>
+                          <input type="number" step="0.1" value={emiRate} onChange={e => setEmiRate(parseFloat(e.target.value))} className="w-full h-8 border rounded px-2 text-sm" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500">Tenure (Yrs)</label>
+                          <input type="number" value={emiTenure} onChange={e => setEmiTenure(parseFloat(e.target.value))} className="w-full h-8 border rounded px-2 text-sm" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xl font-bold text-[#1a1a1a]">₹{calcEMI(x.total).toLocaleString('en-IN')}</p>
+                        <p className="text-xs text-gray-500">Estimated Monthly EMI</p>
+                      </div>
+                    </div>
                   </div>
                   {x.notes && <p className="text-xs text-gray-500 mt-3 text-center">{x.notes}</p>}
+                  <div className="mt-4 flex justify-center">
+                    <Button 
+                      onClick={() => window.open(`https://wa.me/?text=Check out my Gruham home estimate: ${C(x.total)} for a ${x.notes}`, "_blank")}
+                      className="rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                    >
+                      Share Estimate on WhatsApp
+                    </Button>
+                  </div>
                 </motion.div>
               )}
             </div>

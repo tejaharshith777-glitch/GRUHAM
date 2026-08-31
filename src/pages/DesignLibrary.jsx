@@ -84,8 +84,11 @@ export default function DesignLibrary() {
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
             Your Saved Designs
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-2">
             Browse, view, and manage all your AI-generated blueprints and 3D visualizations
+          </p>
+          <p className="text-sm text-[#B8860B] bg-amber-50 rounded-full px-3 py-1 inline-block">
+            Saved in this browser; cloud backup is next.
           </p>
         </motion.div>
         <div className="bg-white rounded-3xl p-4 shadow-lg mb-8">
@@ -364,6 +367,15 @@ export default function DesignLibrary() {
                   <p className="text-sm text-gray-700">{o.prompt}</p>
                 </div>
               )}
+              {/* Before/After finish-level comparison (indicative) */}
+              <div className="bg-[#FAF8F5] border border-[#B8860B]/20 rounded-xl p-4 mb-6">
+                <p className="text-xs font-semibold text-[#B8860B] mb-2 uppercase tracking-wide">Finish Level Comparison (Indicative)</p>
+                <div className="flex gap-4 text-sm">
+                  <div className="flex-1"><span className="text-gray-500">Standard:</span> <br/><span className="font-medium text-[#1a1a1a]">Base Cost</span></div>
+                  <div className="flex-1 border-l pl-4"><span className="text-gray-500">Premium:</span> <br/><span className="font-medium text-[#1a1a1a]">+30%</span></div>
+                  <div className="flex-1 border-l pl-4"><span className="text-gray-500">Luxury:</span> <br/><span className="font-medium text-[#1a1a1a]">+80%</span></div>
+                </div>
+              </div>
               <div className="flex gap-3">
                 {(o.visualization_url || o.blueprint_url) && (
                   <a
@@ -377,9 +389,29 @@ export default function DesignLibrary() {
                     </Button>
                   </a>
                 )}
-                <Button variant="outline" className="flex-1 rounded-full">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 rounded-full"
+                  onClick={() => {
+                    const text = `GRUHAM Design: ${o.title}\nStyle: ${o.style || "N/A"}\nBudget: ${o.budget || "N/A"}`;
+                    navigator.clipboard.writeText(text);
+                    alert("Summary copied to clipboard!");
+                  }}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Copy Summary
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1 rounded-full"
+                  onClick={() => {
+                    const url = window.location.origin + "?plan=" + o.id;
+                    navigator.clipboard.writeText(url);
+                    alert("Shareable link copied: " + url);
+                  }}
+                >
                   <Share2 className="w-4 h-4 mr-2" />
-                  Share
+                  Share Link
                 </Button>
                 <Button variant="outline" onClick={() => l(null)} className="rounded-full">
                   Close

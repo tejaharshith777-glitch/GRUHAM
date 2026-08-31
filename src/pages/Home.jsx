@@ -21,71 +21,72 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "../lib/utils";
+import { computeBOQ, CITY_NAMES, inrShort } from "@/lib/boq";
 
 const heroSlides = [
   {
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=80",
-    headline: "Design Your Dream Home",
-    subhead: "with AI-Powered 3D Visualization",
+    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1280&q=70&auto=format&fit=crop",
+    headline: "Know the real cost of your home",
+    subhead: "before you break ground",
     description:
-      "Generate professional blueprints and stunning 3D renders of your perfect Indian home in minutes",
-    cta: "Start Designing Free",
-    ctaLink: "BlueprintGenerator",
+      "Itemised, city-wise cost estimates + AI concept plans for Indian homes. Free to start — no card required.",
+    cta: "Estimate My Cost",
+    ctaLink: "Materials",
     isH1: true,
   },
   {
-    image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80",
-    headline: "Beautiful Interiors",
-    subhead: "AI-Designed for Indian Homes",
+    image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1280&q=70&auto=format&fit=crop",
+    headline: "See your rooms before you renovate",
+    subhead: "AI concept renders, 6 design styles",
     description:
-      "Transform any room with our AI. Living rooms, kitchens, bedrooms - all in stunning 3D",
-    cta: "Design Interiors",
-    ctaLink: "InteriorDesign",
+      "Upload a room photo and see it reimagined by AI. Concept images for visualization — not a substitute for professional design.",
+    cta: "Restyle a Room",
+    ctaLink: "Designer",
     isH1: false,
   },
   {
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=80",
-    headline: "Find Trusted Contractors",
-    subhead: "Verified Builders Near You",
+    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1280&q=70&auto=format&fit=crop",
+    headline: "Connect with registered contractors",
+    subhead: "Browse profiles by city & specialisation",
     description:
-      "Connect with experienced contractors in your city. View ratings, portfolios, and contact directly",
+      "Find contractors in your city. Contractor marketplace with KYC verification launching soon.",
     cta: "Browse Contractors",
     ctaLink: "Contractors",
     isH1: false,
   },
   {
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1920&q=80",
-    headline: "Estimate Costs Instantly",
-    subhead: "Materials & Budget Calculator",
+    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1280&q=70&auto=format&fit=crop",
+    headline: "Plan your full house, room by room",
+    subhead: "Blueprint + Interior + Exterior + Compound",
     description:
-      "Get accurate construction cost estimates in INR. Plan your budget with confidence",
-    cta: "Calculate Costs",
-    ctaLink: "Materials",
+      "Generate concept plans for every part of your home. All AI output is for planning — always engage a licensed architect before construction.",
+    cta: "Generate a Concept Plan",
+    ctaLink: "BlueprintGenerator",
     isH1: false,
   },
 ];
 const heroHighlights = [
   {
-    icon: Box,
-    text: "3D Visualization",
-    color: "text-blue-400",
+    icon: IndianRupee,
+    text: "City-wise ₹/sq ft",
+    color: "text-amber-400",
   },
   {
     icon: House,
-    text: "Ready Blueprints",
+    text: "Concept Blueprints",
     color: "text-green-400",
   },
   {
     icon: Users,
-    text: "Verified Contractors",
+    text: "Contractor Directory",
     color: "text-purple-400",
   },
   {
-    icon: CircleCheckBig,
-    text: "Vastu Compliant",
-    color: "text-amber-400",
+    icon: FileText,
+    text: "Itemised BOQ",
+    color: "text-blue-400",
   },
 ];
 function HeroCarousel() {
@@ -97,6 +98,21 @@ function HeroCarousel() {
     return () => clearInterval(r);
   }, []);
   const n = heroSlides[e];
+  const [plot, setPlot] = useState("");
+  const [unit, setUnit] = useState("sq ft");
+  const [city, setCity] = useState("Chennai");
+  const navigate = useNavigate();
+
+  const est = React.useMemo(() => {
+    let sqft = parseFloat(plot) || 0;
+    if (unit === "sq m") {
+      sqft = sqft * 10.7639;
+    }
+    if (sqft < 600) return null;
+    const res = computeBOQ({ builtUpArea: sqft, city, finish: "standard" });
+    return res;
+  }, [plot, city, unit]);
+
   return (
     <section className="relative h-screen min-h-[700px] overflow-hidden">
       <AnimatePresence mode="wait">
@@ -118,12 +134,16 @@ function HeroCarousel() {
           }}
           className="absolute inset-0"
         >
-          <img src={n.image} alt={n.headline} className="w-full h-full object-cover" />
+          <img src={n.image} alt={n.headline} className="w-full h-full object-cover"
+                 loading={e === 0 ? "eager" : "lazy"}
+                 fetchPriority={e === 0 ? "high" : "auto"}
+                 decoding="async" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
         </motion.div>
       </AnimatePresence>
       <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-8 flex items-center">
-        <div className="max-w-2xl">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-7">
           <AnimatePresence mode="wait">
             <motion.div
               key={e}
@@ -227,6 +247,78 @@ function HeroCarousel() {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        <div className="lg:col-span-5 hidden lg:block">
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-2xl"
+          >
+            <h3 className="font-serif text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <IndianRupee className="w-6 h-6 text-[#B8860B]" /> Quick Cost Estimate
+            </h3>
+            <div className="space-y-5">
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-white/80 text-sm font-medium">Built-up Area</label>
+                  <div className="flex bg-white/20 rounded-md overflow-hidden text-xs">
+                    <button 
+                      onClick={() => setUnit("sq ft")}
+                      className={`px-2 py-1 ${unit === "sq ft" ? "bg-[#B8860B] text-white" : "text-white/70 hover:text-white"}`}
+                    >
+                      sq ft
+                    </button>
+                    <button 
+                      onClick={() => setUnit("sq m")}
+                      className={`px-2 py-1 ${unit === "sq m" ? "bg-[#B8860B] text-white" : "text-white/70 hover:text-white"}`}
+                    >
+                      sq m
+                    </button>
+                  </div>
+                </div>
+                <input
+                  type="number"
+                  placeholder={unit === "sq ft" ? "e.g. 1500" : "e.g. 140"}
+                  value={plot}
+                  onChange={(e) => setPlot(e.target.value)}
+                  className="w-full h-12 bg-white/20 border border-white/30 rounded-xl px-4 text-white placeholder-white/50 focus:outline-none focus:border-[#B8860B]"
+                />
+              </div>
+              <div>
+                <label className="text-white/80 text-sm font-medium mb-1 block">City</label>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full h-12 bg-white/20 border border-white/30 rounded-xl px-4 text-white focus:outline-none focus:border-[#B8860B] [&>option]:text-black"
+                >
+                  {CITY_NAMES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              
+              <div className="h-24 flex flex-col justify-center">
+                {est ? (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <p className="text-[#B8860B] font-serif text-3xl font-bold">
+                      {inrShort(est.band_low)} – {inrShort(est.band_high)}
+                    </p>
+                    <p className="text-white/70 text-sm mt-1">For standard finishes in {city}</p>
+                  </motion.div>
+                ) : (
+                  <p className="text-white/50 text-sm">Enter at least {unit === "sq ft" ? "600" : "55"} {unit} to see an estimate.</p>
+                )}
+              </div>
+
+              <button
+                onClick={() => navigate(createPageUrl("Designer"))}
+                className="w-full h-12 bg-[#B8860B] hover:bg-[#D4A84B] text-white rounded-xl font-semibold transition-colors"
+              >
+                Plan Full Details
+              </button>
+            </div>
+          </motion.div>
+        </div>
+        </div>
       </div>
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
         {heroSlides.map((r, o) => (
@@ -258,31 +350,31 @@ function HeroBottomCurve() {
 const features = [
   {
     icon: FileText,
-    title: "Ready-to-Build Blueprints",
-    subtitle: "PROFESSIONAL PLANS",
+    title: "AI Concept Plans",
+    subtitle: "FOR VISUALIZATION & PLANNING",
     description:
-      "Generate detailed 2D floor plans with room dimensions, door/window placements that contractors can use directly for construction.",
-  },
-  {
-    icon: Box,
-    title: "3D Home Visualization",
-    subtitle: "WALK THROUGH YOUR DESIGN",
-    description:
-      "See your future home in stunning 3D with rotation, zoom, and multiple camera angles. Explore every corner before you build.",
-  },
-  {
-    icon: CircleCheckBig,
-    title: "Vastu Compliant Designs",
-    subtitle: "TRADITIONAL WISDOM",
-    description:
-      "Our AI generates designs following Vastu Shastra principles, ensuring your home brings prosperity and positive energy.",
+      "Generate 2D concept floor plans and elevation renders to communicate your vision. Concept output — not construction drawings. Always engage a licensed architect before building.",
   },
   {
     icon: IndianRupee,
-    title: "Instant Cost Estimation",
-    subtitle: "BUDGET PLANNING IN INR",
+    title: "Itemised Cost Estimates",
+    subtitle: "CITY-WISE ₹/SQ FT BREAKDOWN",
     description:
-      "Get accurate material quantities and construction cost estimates in Indian Rupees. Plan your dream home within your budget.",
+      "Get an indicative Bill of Quantities broken down by stage — foundation, structure, flooring, plumbing, electrical, paint, and more. Estimates are ±15% and not a contractor quotation.",
+  },
+  {
+    icon: CircleCheckBig,
+    title: "Vastu-Aware Layouts",
+    subtitle: "COMMON ZONE GUIDELINES",
+    description:
+      "Our layout tool follows common Vastu Shastra zone guidelines (kitchen SE, master bedroom SW, entrance N/E). For full Vastu compliance, consult a certified Vastu expert.",
+  },
+  {
+    icon: Users,
+    title: "Contractor Directory",
+    subtitle: "BROWSE BY CITY & SPECIALISATION",
+    description:
+      "Browse registered contractors by city, specialisation, and experience. Verified contractor marketplace with KYC, reviews, and lead management is launching soon.",
   },
 ];
 function WhyChooseUs() {
@@ -389,9 +481,9 @@ function WhyChooseUs() {
                 }}
                 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
               >
-                <span className="text-[#1a1a1a]">Why Choose Dream</span>
+                <span className="text-[#1a1a1a]">Why Build With</span>
                 <br />
-                <span className="text-[#B8860B]">Home Architect</span>
+                <span className="text-[#B8860B]">GRUHAM</span>
               </motion.h2>
               <motion.p
                 initial={{
@@ -610,7 +702,7 @@ function LimitedOfferCTA() {
       >
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?w=1920&q=80"
+            src="https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?w=1280&q=70&auto=format&fit=crop"
             alt="Beautiful interior design showcase"
             className="w-full h-full object-cover"
           />
@@ -657,9 +749,9 @@ function LimitedOfferCTA() {
               }}
               className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight"
             >
-              Get 50+ Design
+              Start free — no card needed
               <br />
-              <span className="text-[#B8860B]">Variations Free</span>
+              <span className="text-[#B8860B]">5 credits on signup</span>
             </motion.h2>
             <motion.p
               initial={{
@@ -679,8 +771,8 @@ function LimitedOfferCTA() {
               }}
               className="text-gray-300 text-lg mb-8 leading-relaxed"
             >
-              Sign up today and receive unlimited AI design generations for your first room. No
-              credit card required. Start transforming your space immediately.
+              Sign up and get 5 free design credits + a full itemised cost estimate. No credit card required.
+              Concept renders for planning — not architectural drawings for construction.
             </motion.p>
             <motion.div
               initial={{
@@ -710,7 +802,7 @@ function LimitedOfferCTA() {
                   }}
                   className="group bg-[#B8860B] text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-[#1a1a1a] transition-all duration-300 flex items-center gap-3"
                 >
-                  Claim Your Free Designs
+                  Start Free — No Card Required
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                 </motion.button>
               </Link>
@@ -965,30 +1057,30 @@ const howItWorksSteps = [
   {
     icon: FileText,
     step: "01",
-    title: "Enter Requirements",
+    title: "Describe your plot & requirements",
     description:
-      "Tell us your BHK, plot size, budget, style preferences. Or upload a sketch/photo to redesign.",
+      "Enter BHK, plot size, city, budget, and style preferences. Upload a sketch or reference photo. Takes about 2 minutes.",
+  },
+  {
+    icon: IndianRupee,
+    step: "02",
+    title: "Get a city-wise cost estimate",
+    description:
+      "See an itemised ₹/sq ft breakdown by stage — foundation, structure, flooring, plumbing, electrical, paint, and more. Indicative (±15%) — not a contractor quote.",
   },
   {
     icon: WandSparkles,
-    step: "02",
-    title: "AI Generates Design",
-    description:
-      "Our AI creates professional 2D blueprints and stunning 3D visualizations in seconds.",
-  },
-  {
-    icon: Box,
     step: "03",
-    title: "View in 3D",
+    title: "Visualise with AI concept renders",
     description:
-      "Rotate, zoom, and explore your design from every angle. Download ready-to-build blueprints.",
+      "See AI-generated concept images for your floor plan, interior, exterior, and compound. For planning discussions — always review with a licensed architect before construction.",
   },
   {
     icon: Users,
     step: "04",
-    title: "Connect & Build",
+    title: "Hire verified contractors & track the build",
     description:
-      "Find verified contractors, estimate costs, and turn your dream home into reality.",
+      "Browse registered contractors, send a quote request, and track milestones and spending in the Project Tracker. Contractor marketplace launching soon.",
   },
 ];
 function HowItWorks() {
@@ -1504,211 +1596,42 @@ function DesignStylesCarousel() {
     )
   );
 }
-const testimonials = [
-  {
-    id: 1,
-    name: "Sarah Mitchell",
-    role: "Homeowner",
-    rating: 5,
-    text: "I was skeptical at first, but Dream Home Architect completely changed how I approach interior design. I uploaded my outdated living room and within seconds had 10 different design options. We ended up renovating exactly as the AI suggested!",
-    image_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    role: "Real Estate Agent",
-    rating: 5,
-    text: "This tool has been a game-changer for my business. I show potential buyers what their new home could look like with different styles. It's helped me close deals faster because clients can truly visualize the potential.",
-    image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-  },
-  {
-    id: 3,
-    name: "Emma Rodriguez",
-    role: "Interior Design Student",
-    rating: 5,
-    text: "As a design student, this is incredibly helpful for quick ideation. I can test concepts before presenting to clients. The AI understands design principles better than I expected—proportions, color theory, everything!",
-    image_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
-  },
-  {
-    id: 4,
-    name: "David Thompson",
-    role: "Apartment Renter",
-    rating: 4,
-    text: "Even as a renter who can't make permanent changes, this app helps me plan furniture layouts and decor that works with my space. I've saved so much money by visualizing before buying.",
-    image_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
-  },
-  {
-    id: 5,
-    name: "Jennifer Park",
-    role: "Home Flipper",
-    rating: 5,
-    text: "I flip houses for a living, and Dream Home Architect helps me plan renovations with confidence. I can show contractors exactly what I want and share designs with potential buyers before the work is even done.",
-    image_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80",
-  },
-  {
-    id: 6,
-    name: "Robert Williams",
-    role: "Architect",
-    rating: 5,
-    text: "I recommend this to all my residential clients for early-stage concept exploration. It bridges the gap between their Pinterest boards and professional architectural drawings. Brilliant tool.",
-    image_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80",
-  },
-];
+// Testimonials: no invented reviews. Honest empty state until real users submit reviews.
 function Testimonials() {
-  const [e, t] = useState(0),
-    [n, r] = useState({}),
-    o = useRef(null),
-    l = () => {
-      (o.current && clearInterval(o.current),
-        (o.current = setInterval(() => {
-          t((x) => (x + 1) % testimonials.length);
-        }, 5e3)));
-    },
-    c = () => {
-      (o.current && clearInterval(o.current), l());
-    };
-  useEffect(
-    () => (
-      l(),
-      () => {
-        o.current && clearInterval(o.current);
-      }
-    ),
-    [],
-  );
-  const d = () => {
-      (t((x) => (x + 1) % testimonials.length), c());
-    },
-    h = () => {
-      (t((x) => (x - 1 + testimonials.length) % testimonials.length), c());
-    },
-    p = (x) => {
-      (t(x), c());
-    },
-    m = (x) => {
-      r((j) => ({
-        ...j,
-        [x]: true,
-      }));
-    },
-    y = testimonials[e];
   return (
-    <section
-      className="py-16 md:py-20 relative overflow-hidden bg-[#FAF8F5]"
-      onMouseEnter={() => clearInterval(o.current)}
-      onMouseLeave={l}
-    >
+    <section className="py-16 md:py-20 relative overflow-hidden bg-[#FAF8F5]">
       <div className="relative max-w-4xl mx-auto px-6">
         <div className="text-center">
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 30,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.8,
-              ease: "easeOut",
-            }}
-            viewport={{
-              once: true,
-            }}
-            className="relative"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true }}
           >
-            <Quote className="absolute -top-2 -right-2 w-16 h-16 text-[#B8860B]/10" />
-            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-[#1a1a1a] mb-2">
+            <Quote className="w-12 h-12 text-[#B8860B]/20 mx-auto mb-4" />
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-[#1a1a1a] mb-4">
               What Our Users Say
             </h2>
-            <p className="font-sans text-gray-500 mb-10">
-              Trusted by thousands of homeowners & professionals
-            </p>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={y.id}
-                initial={{
-                  opacity: 0,
-                  y: 20,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  y: -20,
-                }}
-                transition={{
-                  duration: 0.4,
-                }}
-                className="space-y-6"
-              >
-                <div className="flex justify-center mb-4">
-                  <div className="w-24 h-24 rounded-full overflow-hidden shadow-lg border-4 border-white bg-gray-200">
-                    {n[y.id] ? (
-                      <div className="w-full h-full bg-gradient-to-br from-[#B8860B] to-[#D4A84B] flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">
-                          {y.name
-                            .split(" ")
-                            .map((x) => x[0])
-                            .join("")}
-                        </span>
-                      </div>
-                    ) : (
-                      <img
-                        src={y.image_url}
-                        alt={`${y.name}, satisfied user of Dream Home Architect`}
-                        className="w-full h-full object-cover"
-                        onError={() => m(y.id)}
-                      />
-                    )}
-                  </div>
-                </div>
-                <p className="font-sans text-lg text-gray-600 leading-relaxed max-w-3xl mx-auto min-h-[120px] italic">
-                  "{y.text}"
-                </p>
-                <div className="flex justify-center gap-1 mb-4">
-                  {[...Array(5)].map((x, j) => (
-                    <Star
-                      key={j}
-                      className={`w-5 h-5 transition-colors duration-300 ${j < y.rating ? "text-[#B8860B] fill-current" : "text-gray-300"}`}
-                    />
-                  ))}
-                </div>
-                <div>
-                  <h4 className="font-serif text-xl font-semibold text-[#1a1a1a]">{y.name}</h4>
-                  <p className="font-sans text-sm text-[#B8860B] uppercase tracking-wider">
-                    {y.role}
-                  </p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            <div className="flex items-center justify-center gap-8 mt-10">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={h}
-                  className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-[#B8860B] hover:text-white hover:border-[#B8860B] transition-all duration-300"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={d}
-                  className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-[#B8860B] hover:text-white hover:border-[#B8860B] transition-all duration-300"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+            <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 max-w-2xl mx-auto mt-6">
+              <div className="w-16 h-16 bg-[#B8860B]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-7 h-7 text-[#B8860B]" />
               </div>
-              <div className="flex gap-2">
-                {testimonials.map((x, j) => (
-                  <button
-                    key={j}
-                    onClick={() => p(j)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${j === e ? "bg-[#B8860B] w-6" : "bg-gray-300 hover:bg-gray-400"}`}
-                  />
-                ))}
-              </div>
+              <h3 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-3">
+                Be the first to review GRUHAM
+              </h3>
+              <p className="text-gray-500 text-base leading-relaxed mb-6">
+                We don't invent testimonials. Try any GRUHAM tool — generate a concept plan, get a
+                cost estimate, or browse contractors — then share your honest experience.
+              </p>
+              <Link to={createPageUrl("Contact")}>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-[#B8860B] text-white px-6 py-3 rounded-full font-medium text-sm hover:bg-[#1a1a1a] transition-colors"
+                >
+                  Share your feedback →
+                </motion.button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -1722,20 +1645,20 @@ const trustStats = [
     subtext: "Design Engine",
   },
   {
-    text: "50+ Styles",
-    subtext: "To Choose From",
+    text: "6 Styles",
+    subtext: "Interior & Exterior",
   },
   {
-    text: "10,000+",
-    subtext: "Happy Users",
+    text: "₹/sq ft",
+    subtext: "City-Wise Estimates",
   },
   {
     text: "Instant",
-    subtext: "Results",
+    subtext: "Concept Renders",
   },
   {
-    text: "HD Quality",
-    subtext: "Renders",
+    text: "BOQ",
+    subtext: "Itemised Breakdown",
   },
   {
     text: "24/7",

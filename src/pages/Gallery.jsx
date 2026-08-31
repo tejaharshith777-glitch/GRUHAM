@@ -12,64 +12,65 @@ import { createPageUrl } from "../lib/utils";
 const galleryItems = [
   {
     id: 1,
-    before: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80",
-    after: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80",
-    style: "Modern Minimalist",
-    room: "Living Room",
+    before: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=70&auto=format&fit=crop",
+    after: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=70&auto=format&fit=crop",
+    style: "Modern Indian Minimalist",
+    cost: "₹1,800 - ₹2,200",
+    bestFor: "Urban apartments & compact plots",
+    materials: "Vitrified tiles, MDF wardrobes, neutral paints, sleek lighting",
   },
   {
     id: 2,
-    before: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80",
-    after: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80",
-    style: "Scandinavian",
-    room: "Bedroom",
+    before: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=70&auto=format&fit=crop",
+    after: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=70&auto=format&fit=crop",
+    style: "Contemporary Luxury",
+    cost: "₹2,500 - ₹3,500",
+    bestFor: "Large independent houses & duplexes",
+    materials: "Italian marble, veneer paneling, brass accents, false ceilings",
   },
   {
     id: 3,
-    before: "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80",
-    after: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80",
-    style: "Industrial",
-    room: "Kitchen",
+    before: "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=70&auto=format&fit=crop",
+    after: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=70&auto=format&fit=crop",
+    style: "Traditional Ethnic",
+    cost: "₹2,200 - ₹2,800",
+    bestFor: "Ancestral homes & heritage renovations",
+    materials: "Teak wood furniture, terracotta tiles, brass artifacts, woven fabrics",
   },
   {
     id: 4,
-    before: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80",
-    after: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
-    style: "Coastal",
-    room: "Living Room",
+    before: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=70&auto=format&fit=crop",
+    after: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=70&auto=format&fit=crop",
+    style: "Tropical/Coastal",
+    cost: "₹1,900 - ₹2,400",
+    bestFor: "Coastal cities & vacation homes",
+    materials: "Rattan, bamboo, cool cottons, large open windows, indoor plants",
   },
   {
     id: 5,
-    before: "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80",
-    after: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80",
-    style: "Bohemian",
-    room: "Bedroom",
-  },
-  {
-    id: 6,
-    before: "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800&q=80",
-    after: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80",
-    style: "Mid-Century Modern",
-    room: "Living Room",
+    before: "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=70&auto=format&fit=crop",
+    after: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=70&auto=format&fit=crop",
+    style: "Neo-Classical",
+    cost: "₹2,800 - ₹4,000+",
+    bestFor: "Luxury villas & farmhouses",
+    materials: "Mouldings, chandeliers, plush velvet, intricate woodwork",
   },
 ];
 const galleryFilters = [
   "All",
-  "Modern Minimalist",
-  "Scandinavian",
-  "Industrial",
-  "Coastal",
-  "Bohemian",
-  "Mid-Century Modern",
+  "Modern Indian Minimalist",
+  "Contemporary Luxury",
+  "Traditional Ethnic",
+  "Tropical/Coastal",
+  "Neo-Classical",
 ];
 export default function Gallery() {
   const [e, t] = useState("All"),
     [n, r] = useState("All"),
     [o, l] = useState(null),
     c = galleryItems.filter((d) => {
-      const h = e === "All" || d.style === e,
-        p = n === "All" || d.room === n;
-      return h && p;
+      const h = e === "All" || d.style === e;
+      return h;
     });
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
@@ -93,11 +94,10 @@ export default function Gallery() {
             <span className="text-[#B8860B] font-medium text-sm">Transformation Gallery</span>
           </div>
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
-            Before & After
+            Indian Home Style Guide
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            See how our AI transforms ordinary rooms into extraordinary spaces. Get inspired for
-            your own project.
+            Explore popular design aesthetics in India. Understand indicative costs, best use-cases, and typical materials before planning your home.
           </p>
         </motion.div>
         <motion.div
@@ -165,12 +165,17 @@ export default function Gallery() {
               </div>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[#B8860B] text-sm font-medium">{d.style}</span>
-                  <span className="text-gray-400 text-sm">{d.room}</span>
+                  <span className="text-[#B8860B] text-sm font-medium uppercase tracking-wider">{d.style}</span>
                 </div>
-                <h3 className="font-serif text-xl font-bold text-[#1a1a1a]">
-                  AI Room Transformation
+                <h3 className="font-serif text-xl font-bold text-[#1a1a1a] mb-2">
+                  {d.cost} / sq ft
                 </h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  <span className="font-medium">Best for:</span> {d.bestFor}
+                </p>
+                <div className="text-sm text-gray-500 line-clamp-2">
+                  <span className="font-medium text-gray-700">Materials:</span> {d.materials}
+                </div>
               </div>
             </motion.div>
           ))}
@@ -266,12 +271,13 @@ export default function Gallery() {
                 </div>
               </div>
               <div className="p-6 flex items-center justify-between">
-                <div>
-                  <h3 className="font-serif text-2xl font-bold text-[#1a1a1a]">{o.style}</h3>
-                  <p className="text-gray-500">
-                    {o.room}
-                    Transformation
-                  </p>
+                <div className="flex-1">
+                  <h3 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-2">{o.style}</h3>
+                  <div className="grid md:grid-cols-3 gap-4 text-sm">
+                    <div><span className="font-medium text-gray-700">Cost:</span> {o.cost} / sq ft</div>
+                    <div><span className="font-medium text-gray-700">Best for:</span> {o.bestFor}</div>
+                    <div><span className="font-medium text-gray-700">Materials:</span> {o.materials}</div>
+                  </div>
                 </div>
                 <button
                   onClick={() => l(null)}

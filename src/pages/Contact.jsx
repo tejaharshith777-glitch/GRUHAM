@@ -18,20 +18,23 @@ export default function Contact() {
       subject: "",
       message: "",
     }),
-    [n, r] = useState(false),
     [o, l] = useState(false),
-    c = async (d) => {
-      (d.preventDefault(),
-        r(true),
-        await new Promise((h) => setTimeout(h, 1500)),
-        r(false),
-        l(true),
-        t({
-          name: "",
-          email: "",
-          subject: "",
-          message: "",
-        }));
+    c = (d) => {
+      d.preventDefault();
+      // Open mailto: with pre-filled content — no server receives this data.
+      const body = encodeURIComponent(
+        `Name: ${e.name}\nEmail: ${e.email}\n\n${e.message}`
+      );
+      const subject = encodeURIComponent(e.subject || "GRUHAM Enquiry");
+      window.location.href = `mailto:hello@gruhamapp.com?subject=${subject}&body=${body}`;
+      l(true);
+      t({ name: "", email: "", subject: "", message: "" });
+    },
+    whatsapp = () => {
+      const text = encodeURIComponent(
+        `Hi GRUHAM team!\nName: ${e.name}\nQuery: ${e.message}`
+      );
+      window.open(`https://wa.me/?text=${text}`, "_blank");
     };
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
@@ -58,7 +61,7 @@ export default function Contact() {
             Contact Us
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Have questions about Dream Home Architect? We're here to help you transform your space.
+            Have questions about GRUHAM? We read every message and reply within 1 business day (IST).
           </p>
         </motion.div>
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
@@ -96,9 +99,10 @@ export default function Contact() {
                     <Send className="w-8 h-8 text-green-600" />
                   </div>
                   <h3 className="font-serif text-xl font-bold text-[#1a1a1a] mb-2">
-                    Message Sent!
+                    Opening your email app...
                   </h3>
-                  <p className="text-gray-600 mb-6">We'll get back to you within 24 hours.</p>
+                  <p className="text-gray-600 mb-2">Your default email app has been opened with a pre-filled message to hello@gruhamapp.com.</p>
+                  <p className="text-xs text-gray-400 mb-6">No form data is sent to any server.</p>
                   <Button
                     onClick={() => l(false)}
                     variant="outline"
@@ -172,13 +176,25 @@ export default function Contact() {
                       className="min-h-[150px] rounded-xl"
                     />
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={n}
-                    className="w-full h-12 bg-[#B8860B] hover:bg-[#1a1a1a] text-white rounded-full font-semibold"
-                  >
-                    {n ? "Sending..." : "Send Message"}
-                  </Button>
+                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                    <p className="text-xs text-amber-700">No server receives your data. Clicking Send opens your email app pre-filled.</p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      type="submit"
+                      className="flex-1 h-12 bg-[#B8860B] hover:bg-[#1a1a1a] text-white rounded-full font-semibold"
+                    >
+                      <Mail className="w-4 h-4 mr-2" /> Open Email App
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={whatsapp}
+                      variant="outline"
+                      className="flex-1 h-12 rounded-full border-green-500 text-green-700 hover:bg-green-50"
+                    >
+                      WhatsApp Instead
+                    </Button>
+                  </div>
                 </form>
               )}
             </div>
@@ -210,10 +226,10 @@ export default function Contact() {
                   <div>
                     <h4 className="font-medium text-[#1a1a1a] mb-1">Email Us</h4>
                     <a
-                      href="mailto:hello@dreamhomearchitect.com"
+                      href="mailto:hello@gruhamapp.com"
                       className="text-gray-600 hover:text-[#B8860B] transition-colors"
                     >
-                      hello@dreamhomearchitect.com
+                      hello@gruhamapp.com
                     </a>
                   </div>
                 </div>
@@ -223,7 +239,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-medium text-[#1a1a1a] mb-1">Live Chat</h4>
-                    <p className="text-gray-600">Available Mon-Fri, 9am-6pm PST</p>
+                    <p className="text-gray-600">Mon–Sat, 9am–6pm IST</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -232,7 +248,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-medium text-[#1a1a1a] mb-1">Location</h4>
-                    <p className="text-gray-600">San Francisco, California</p>
+                    <p className="text-gray-600">India</p>
                   </div>
                 </div>
               </div>

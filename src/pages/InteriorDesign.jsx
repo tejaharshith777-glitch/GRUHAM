@@ -21,6 +21,7 @@ import { base44 } from "../lib/base44";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Disclaimer from "@/components/Disclaimer";
 
 const interiorRooms = [
   {
@@ -213,6 +214,7 @@ ${e === "kitchen" ? "- Modular kitchen with Indian style stove setup, chimney, s
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <Disclaimer variant="generator" />
         <motion.div
           initial={{
             opacity: 0,
@@ -229,13 +231,21 @@ ${e === "kitchen" ? "- Modular kitchen with Indian style stove setup, chimney, s
             <span className="text-[#B8860B] font-medium text-sm">Interior Design Studio</span>
           </div>
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
-            Design Any Room
+            Interior Design Studio
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Create stunning interior designs for every room in your home with AI-powered
-            visualization
+            Upload a room photo and see AI concept renders in 6 styles.
+            For visualization and planning — not a professional interior design service.
           </p>
         </motion.div>
+
+        {/* Disclaimer */}
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-8">
+          <span className="text-amber-600 text-lg flex-shrink-0">⚠️</span>
+          <p className="text-amber-800 text-sm leading-relaxed">
+            <strong>Sample concept renders.</strong> AI-generated interior images are for inspiration and planning discussions. They are not professional interior design specifications.
+          </p>
+        </div>
         <motion.div
           initial={{
             opacity: 0,
@@ -428,6 +438,11 @@ ${e === "kitchen" ? "- Modular kitchen with Indian style stove setup, chimney, s
                     <p>Design will appear here</p>
                   </div>
                 )}
+                {x && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-center text-white text-xs backdrop-blur-sm">
+                    Sample concept — not an actual design for your plot
+                  </div>
+                )}
               </div>
               {x && N === "3d" && (
                 <div className="flex justify-center gap-4 mt-4">
@@ -455,12 +470,42 @@ ${e === "kitchen" ? "- Modular kitchen with Indian style stove setup, chimney, s
                     <Save className="w-4 h-4 mr-2" />
                     Save
                   </Button>
-                  <a href={x} download={true} className="flex-1">
-                    <Button className="w-full rounded-full bg-[#1a1a1a]">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download
-                    </Button>
-                  </a>
+                  <Button className="flex-1 rounded-full bg-gray-300 text-gray-600 cursor-not-allowed" title="Concept images cannot be downloaded directly. Save to library instead.">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download (Disabled)
+                  </Button>
+                  <Button 
+                    onClick={() => window.open(`https://wa.me/?text=Check out my interior design concept from Gruham!`, "_blank")}
+                    className="flex-1 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                  >
+                    Share on WhatsApp
+                  </Button>
+                </div>
+              )}
+              {x && (
+                <div className="mt-6 bg-[#FAF8F5] p-4 rounded-xl border border-[#B8860B]/20 text-sm">
+                  <h4 className="font-semibold text-[#1a1a1a] mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#B8860B]" />
+                    Design Details & Cost Estimate
+                  </h4>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Requested:</strong> {n} style interior for {e} {o ? `with ${o}` : ""}.
+                  </p>
+                  
+                  <h5 className="font-medium text-[#1a1a1a] mb-2">Indicative Finish Costs (₹/sq ft):</h5>
+                  <ul className="space-y-1 text-gray-600 mb-4">
+                    <li>• Standard: ₹1,500 – ₹1,800</li>
+                    <li>• Premium: ₹2,000 – ₹2,500</li>
+                    <li>• Luxury: ₹3,000+</li>
+                  </ul>
+                  
+                  <h5 className="font-medium text-[#1a1a1a] mb-2">What a Real Quote Must Include:</h5>
+                  <ul className="space-y-1 text-gray-600">
+                    <li>✓ 2D layout with furniture placement</li>
+                    <li>✓ False ceiling & electrical drawing</li>
+                    <li>✓ Itemised woodwork & hardware brands</li>
+                    <li>✓ Material specifications (plywood grade, laminate thickness)</li>
+                  </ul>
                 </div>
               )}
             </div>

@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../lib/utils";
 import { base44 } from "../lib/base44";
+import { computeBOQ, inrShort } from "../lib/boq";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -77,52 +78,46 @@ What would you like to build today?`,
         },
       ]),
       d(true));
-    try {
-      const y = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a helpful AI assistant for "Dream Home Architect" app in India. Help users with:
-- Designing houses (suggest they go to Blueprint Generator for full house, Interior Design for rooms, Exterior Design for facades, Compound Design for gardens/parking)
-- Finding contractors (suggest Contractors page)
-- Material costs in INR (give approximate ranges)
-- Budget estimation for construction in India
+    setTimeout(() => {
+      let response = "I'm your offline GRUHAM assistant! You can use the buttons below to navigate to our design tools.";
+      let suggestedPage = null;
+      let showQuickActions = true;
 
-User message: ${m}
+      const lower = m.toLowerCase();
+      if (lower.includes("cost") || lower.includes("price") || lower.includes("estimate") || lower.includes("sq ft") || lower.includes("sqft")) {
+        // Try to find a number in the query
+        const match = m.match(/(\d+[,.]?\d*)\s*(sq\s*ft|square\s*feet|sqft)/i) || m.match(/(\d+[,.]?\d*)/);
+        let sqft = 1000;
+        if (match && match[1]) {
+          sqft = parseFloat(match[1].replace(/,/g, ''));
+        }
+        if (sqft > 100) {
+          const res = computeBOQ({ builtUpArea: sqft, city: "Chennai", finish: "standard" });
+          response = `For a ${sqft} sq ft home, the indicative construction cost is approximately ${inrShort(res.band_low)} to ${inrShort(res.band_high)}. This is for standard finishes in a typical metro city.\n\n*Note: This is an indicative estimate (±15%). Please use our detailed Materials estimator for a complete breakdown.*`;
+          suggestedPage = "Materials";
+        }
+      } else if (lower.includes("contractor") || lower.includes("builder")) {
+        response = "You can find local registered contractors on our Contractors page. (Note: The verified marketplace is launching soon!)";
+        suggestedPage = "Contractors";
+      } else if (lower.includes("interior") || lower.includes("room")) {
+        response = "I can help you visualize your interior spaces. Try our Interior Design tool!";
+        suggestedPage = "InteriorDesign";
+      } else if (lower.includes("floor plan") || lower.includes("blueprint") || lower.includes("house")) {
+        response = "Ready to plan your plot? Try our Blueprint Generator to get a deterministic room layout.";
+        suggestedPage = "BlueprintGenerator";
+      }
 
-Respond helpfully and concisely. Use Indian context (INR, local materials, Indian architectural styles). If they describe a house requirement, summarize it and suggest the right section to visit. Keep responses under 150 words.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            response: {
-              type: "string",
-            },
-            suggested_page: {
-              type: "string",
-            },
-            show_quick_actions: {
-              type: "boolean",
-            },
-          },
-        },
-      });
       r((x) => [
         ...x,
         {
           role: "assistant",
-          content: y.response,
-          suggestedPage: y.suggested_page,
-          showQuickActions: y.show_quick_actions,
+          content: response,
+          suggestedPage: suggestedPage,
+          showQuickActions: showQuickActions,
         },
       ]);
-    } catch {
-      r((x) => [
-        ...x,
-        {
-          role: "assistant",
-          content:
-            "I apologize, I'm having trouble responding right now. Please try again or explore our design sections directly!",
-        },
-      ]);
-    }
-    d(false);
+      d(false);
+    }, 600);
   };
   return (
     <>
@@ -157,7 +152,7 @@ Respond helpfully and concisely. Use Indian context (INR, local materials, India
               y: 100,
               scale: 0.9,
             }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] h-[600px] max-h-[calc(100vh-100px)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed inset-x-3 bottom-3 sm:inset-x-auto sm:bottom-6 sm:right-6 z-50 w-auto sm:w-[380px] h-[75vh] sm:h-[600px] max-h-[calc(100vh-90px)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden"
           >
             <div className="bg-gradient-to-r from-[#B8860B] to-[#D4A84B] p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -165,8 +160,8 @@ Respond helpfully and concisely. Use Indian context (INR, local materials, India
                   <Bot className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">Dream Home AI</h3>
-                  <p className="text-xs text-white/80">Your design assistant</p>
+                  <h3 className="font-semibold text-white">GRUHAM Assistant</h3>
+                  <p className="text-xs text-white/80">AI planning guide — may not always be accurate</p>
                 </div>
               </div>
               <button onClick={() => t(false)} className="text-white/80 hover:text-white">
@@ -184,7 +179,7 @@ Respond helpfully and concisely. Use Indian context (INR, local materials, India
                   >
                     <p className="text-sm whitespace-pre-line">{m.content}</p>
                     {m.showQuickActions && (
-                      <div className="grid grid-cols-2 gap-2 mt-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
                         {assistantQuickActions.map((x, j) => (
                           <Link
                             key={j}
@@ -253,6 +248,9 @@ Respond helpfully and concisely. Use Indian context (INR, local materials, India
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
+              <p className="text-[10px] text-gray-400 text-center mt-1">
+                AI responses are for guidance only and may not always be accurate.
+              </p>
             </div>
           </motion.div>
         )}

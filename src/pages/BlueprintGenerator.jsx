@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Disclaimer from "@/components/Disclaimer";
 
 const houseStyles = [
   {
@@ -193,6 +194,7 @@ High quality architectural rendering, professional photography style`,
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <Disclaimer variant="generator" />
         <motion.div
           initial={{
             opacity: 0,
@@ -209,13 +211,21 @@ High quality architectural rendering, professional photography style`,
             <span className="text-[#B8860B] font-medium text-sm">AI Blueprint Generator</span>
           </div>
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
-            Design Your Dream Home
+            AI Blueprint Generator
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Generate professional blueprints and 3D visualizations instantly with AI. Ready-to-build
-            plans for Indian homes.
+            Generate concept floor plans and elevation renders for Indian homes.
+            For planning and visualization — not construction drawings.
           </p>
         </motion.div>
+
+        {/* Disclaimer banner */}
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-8">
+          <span className="text-amber-600 text-lg flex-shrink-0">⚠️</span>
+          <p className="text-amber-800 text-sm leading-relaxed">
+            <strong>Concept designs only.</strong> AI-generated images are for visualization and planning discussion — they are not architectural or structural drawings. Before any construction, engage a licensed architect and structural engineer for stamped drawings.
+          </p>
+        </div>
         <div className="grid lg:grid-cols-2 gap-8">
           <motion.div
             initial={{
@@ -294,7 +304,7 @@ High quality architectural rendering, professional photography style`,
                 <Building className="w-5 h-5 text-[#B8860B]" />
                 House Configuration
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">BHK Type</label>
                   <Select value={x} onValueChange={j}>
@@ -488,6 +498,11 @@ High quality architectural rendering, professional photography style`,
                     <p>3D visualization will appear here</p>
                   </div>
                 )}
+                {A && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-center text-white text-xs backdrop-blur-sm">
+                    Sample concept — not an actual design for your plot
+                  </div>
+                )}
               </div>
               {A && ae === "3d" && (
                 <div className="mt-4 space-y-3">
@@ -533,12 +548,16 @@ High quality architectural rendering, professional photography style`,
                     <Save className="w-4 h-4 mr-2" />
                     Save
                   </Button>
-                  <a href={A || B} download={true} className="flex-1">
-                    <Button className="w-full rounded-full bg-[#1a1a1a]">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download
-                    </Button>
-                  </a>
+                  <Button className="flex-1 rounded-full bg-gray-300 text-gray-600 cursor-not-allowed" title="Concept images cannot be downloaded directly. Save to library instead.">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download (Disabled)
+                  </Button>
+                  <Button 
+                    onClick={() => window.open(`https://wa.me/?text=Check out my AI-generated blueprint concept from Gruham!`, "_blank")}
+                    className="flex-1 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                  >
+                    Share on WhatsApp
+                  </Button>
                   <Button onClick={W} variant="outline" className="rounded-full">
                     <RefreshCw className="w-4 h-4" />
                   </Button>

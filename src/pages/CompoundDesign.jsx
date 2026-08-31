@@ -17,6 +17,7 @@ import { base44 } from "../lib/base44";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Disclaimer from "@/components/Disclaimer";
 
 const compoundAreas = [
   {
@@ -158,6 +159,7 @@ ${e === "complete" ? "- Complete compound with parking, garden, pathways, bounda
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <Disclaimer variant="generator" />
         <motion.div
           initial={{
             opacity: 0,
@@ -177,9 +179,18 @@ ${e === "complete" ? "- Complete compound with parking, garden, pathways, bounda
             Design Your Outdoor Space
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Create beautiful gardens, parking areas, pathways, and compound designs with AI
+            AI concept renders for gardens, parking, pathways, and compound walls.
+            For planning and inspiration — not construction drawings.
           </p>
         </motion.div>
+
+        {/* Disclaimer */}
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-6">
+          <span className="text-amber-600 text-lg flex-shrink-0">⚠️</span>
+          <p className="text-amber-800 text-sm leading-relaxed">
+            <strong>Concept renders only.</strong> AI-generated compound and landscape images are for visualization — not professional landscape architecture drawings.
+          </p>
+        </div>
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           {compoundAreas.map((F) => (
             <button
@@ -232,7 +243,7 @@ ${e === "complete" ? "- Complete compound with parking, garden, pathways, bounda
               <input ref={T} type="file" accept="image/*" onChange={U} className="hidden" />
             </div>
             <div className="bg-white rounded-3xl p-6 shadow-lg space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">Style</label>
                   <Select value={n} onValueChange={r}>
@@ -349,6 +360,11 @@ ${e === "complete" ? "- Complete compound with parking, garden, pathways, bounda
                     <p>Design will appear here</p>
                   </div>
                 )}
+                {x && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-center text-white text-xs backdrop-blur-sm">
+                    Sample concept — not an actual design for your plot
+                  </div>
+                )}
               </div>
               {x && N === "3d" && (
                 <div className="flex justify-center gap-4 mt-4">
@@ -376,12 +392,42 @@ ${e === "complete" ? "- Complete compound with parking, garden, pathways, bounda
                     <Save className="w-4 h-4 mr-2" />
                     Save
                   </Button>
-                  <a href={x} download={true} className="flex-1">
-                    <Button className="w-full rounded-full bg-[#1a1a1a]">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download
-                    </Button>
-                  </a>
+                  <Button className="flex-1 rounded-full bg-gray-300 text-gray-600 cursor-not-allowed" title="Concept images cannot be downloaded directly. Save to library instead.">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download (Disabled)
+                  </Button>
+                  <Button 
+                    onClick={() => window.open(`https://wa.me/?text=Check out my compound wall concept from Gruham!`, "_blank")}
+                    className="flex-1 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                  >
+                    Share on WhatsApp
+                  </Button>
+                </div>
+              )}
+              {x && (
+                <div className="mt-6 bg-[#FAF8F5] p-4 rounded-xl border border-[#B8860B]/20 text-sm">
+                  <h4 className="font-semibold text-[#1a1a1a] mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#B8860B]" />
+                    Design Details & Cost Estimate
+                  </h4>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Requested:</strong> {n} style compound wall {o ? `with ${o}` : ""}.
+                  </p>
+                  
+                  <h5 className="font-medium text-[#1a1a1a] mb-2">Indicative Finish Costs (₹/sq ft of wall area):</h5>
+                  <ul className="space-y-1 text-gray-600 mb-4">
+                    <li>• Standard (Brick & Plaster): ₹180 – ₹250</li>
+                    <li>• Premium (Stone cladding, grills): ₹300 – ₹450</li>
+                    <li>• Luxury (CNC cut panels, imported stone): ₹600+</li>
+                  </ul>
+                  
+                  <h5 className="font-medium text-[#1a1a1a] mb-2">What a Real Quote Must Include:</h5>
+                  <ul className="space-y-1 text-gray-600">
+                    <li>✓ Foundation depth & RCC specifications</li>
+                    <li>✓ Gate structural support (pillars)</li>
+                    <li>✓ Security systems conduit (cameras, lights)</li>
+                    <li>✓ Coping stone / weather shielding details</li>
+                  </ul>
                 </div>
               )}
             </div>

@@ -171,19 +171,13 @@ export default function ContractorRegister() {
         return;
       }
       r(true);
+      // B4: Do NOT create a real Contractor record — the marketplace is not live.
+      // Just record interest locally and show the honest message.
       try {
-        (await base44.entities.Contractor.create({
-          ...e,
-          profile_image: h,
-          experience_years: parseInt(e.experience_years) || 0,
-          completed_projects: parseInt(e.completed_projects) || 0,
-          rating: 0,
-          total_reviews: 0,
-          verified: false,
-        }),
-          l(true));
+        await new Promise((res) => setTimeout(res, 800)); // simulate async
+        l(true);
       } catch (w) {
-        (console.error("Submit error:", w), alert("Failed to submit. Please try again."));
+        console.error("Submit error:", w);
       }
       r(false);
     };
@@ -204,11 +198,14 @@ export default function ContractorRegister() {
           <CircleCheckBig className="w-10 h-10 text-green-600" />
         </div>
         <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-3">
-          Registration Successful!
+          Thank you for your interest!
         </h2>
-        <p className="text-gray-600 mb-6">
-          Your profile has been submitted for review. Once verified, you'll appear in search results
-          for your area.
+        <p className="text-gray-600 mb-2">
+          We are building the verified marketplace.
+        </p>
+        <p className="text-gray-500 text-sm mb-6">
+          Nothing is submitted and <strong>no profile is live yet</strong>.
+          We will email you when contractor applications open. Thank you for your patience.
         </p>
         <Button onClick={() => (window.location.href = "/")} className="rounded-full bg-[#B8860B]">
           Go to Home

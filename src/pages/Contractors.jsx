@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Building2,
-  Camera,
   CircleCheckBig,
   Clock,
   Filter,
@@ -13,6 +12,10 @@ import {
   Star,
   Users,
   X,
+  ShieldCheck,
+  FileText,
+  IndianRupee,
+  AlertTriangle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -102,18 +105,23 @@ export default function Contractors() {
             <span className="text-[#B8860B] font-medium text-sm">Find Contractors</span>
           </div>
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
-            Trusted Contractors
+            Contractor Directory
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-6">
-            Find verified contractors in your area to bring your dream home to life. Connect
-            directly and build with confidence.
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-4">
+            Browse registered contractors by city and specialisation. Request a quote and track your build.
           </p>
-          <Link to={createPageUrl("ContractorRegister")}>
-            <Button className="bg-[#1a1a1a] hover:bg-[#B8860B] text-white rounded-full px-6">
-              <Plus className="w-4 h-4 mr-2" />
-              Register as Contractor
-            </Button>
-          </Link>
+          {/* Honest status banner */}
+          <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2 mb-4 text-sm text-amber-800">
+            ⚠️ Sample profiles — real verified contractor marketplace launching soon
+          </div>
+          <div className="block">
+            <Link to={createPageUrl("ContractorRegister")}>
+              <Button className="bg-[#1a1a1a] hover:bg-[#B8860B] text-white rounded-full px-6">
+                <Plus className="w-4 h-4 mr-2" />
+                Register as Contractor
+              </Button>
+            </Link>
+          </div>
         </motion.div>
         <motion.div
           initial={{
@@ -165,6 +173,113 @@ export default function Contractors() {
             </Select>
           </div>
         </motion.div>
+
+        {/* How to hire a contractor guide */}
+        <div className="bg-[#FAF8F5] border border-[#B8860B]/20 rounded-3xl p-6 lg:p-8 mb-10 shadow-sm">
+          <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-6 flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-[#B8860B]" />
+            How to Hire Safely
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <h3 className="font-semibold text-[#1a1a1a] mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#B8860B]" /> Documents to Demand
+              </h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex gap-2"><span>1.</span> GST Registration Certificate</li>
+                <li className="flex gap-2"><span>2.</span> Previous Project Completion Certificates</li>
+                <li className="flex gap-2"><span>3.</span> Itemised BOQ (Bill of Quantities)</li>
+                <li className="flex gap-2"><span>4.</span> Written Contract with Timelines</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-[#1a1a1a] mb-3 flex items-center gap-2">
+                <IndianRupee className="w-4 h-4 text-[#B8860B]" /> Safe Payment Schedule
+              </h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex gap-2"><span>•</span> <strong>10%</strong> Advance (Mobilisation)</li>
+                <li className="flex gap-2"><span>•</span> <strong>15%</strong> Plinth level completed</li>
+                <li className="flex gap-2"><span>•</span> <strong>40%</strong> Slab by slab (pro-rata)</li>
+                <li className="flex gap-2"><span>•</span> <strong>30%</strong> Finishing (Plumbing, Electrical, Flooring)</li>
+                <li className="flex gap-2"><span>•</span> <strong>5%</strong> Handover & snag list</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-[#1a1a1a] mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500" /> Red Flags
+              </h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex gap-2"><span>•</span> Demands &gt;20% advance before starting</li>
+                <li className="flex gap-2"><span>•</span> Refuses to give an itemised BOQ</li>
+                <li className="flex gap-2"><span>•</span> Asks for payments in cash only</li>
+                <li className="flex gap-2"><span>•</span> "I will manage without architect drawings"</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Quote Comparison Table */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <h3 className="font-semibold text-[#1a1a1a] mb-4">Printable Quote Comparison Table</h3>
+            <p className="text-sm text-gray-600 mb-4">Print this and use it when getting quotes from multiple contractors to ensure you are comparing apples to apples.</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="p-3 font-medium text-gray-700">Checklist Item</th>
+                    <th className="p-3 font-medium text-gray-700 border-l border-gray-200">Contractor A</th>
+                    <th className="p-3 font-medium text-gray-700 border-l border-gray-200">Contractor B</th>
+                    <th className="p-3 font-medium text-gray-700 border-l border-gray-200">Contractor C</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 text-gray-600">Total Price quoted</td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 text-gray-600">Steel brand (e.g. Tata/JSW)</td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 text-gray-600">Cement brand & grade</td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 text-gray-600">Plumbing pipes (CPVC/PVC brand)</td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 text-gray-600">Wires & Switches brand</td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 text-gray-600">Flooring allowance (₹/sq ft)</td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 text-gray-600">Timeline guarantee penalty</td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                    <td className="p-3 border-l border-gray-100"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-6 flex items-center justify-between">
           <p className="text-gray-600">
             Showing
@@ -269,7 +384,7 @@ export default function Contractors() {
                       )}
                     </div>
                   </div>
-                  <div className="px-6 pb-4 grid grid-cols-2 gap-4">
+                  <div className="px-6 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
