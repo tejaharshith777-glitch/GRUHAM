@@ -700,7 +700,11 @@ export default function Materials() {
                     ].map((T, P) => (
                       <div key={P} className="bg-white rounded-xl p-3 text-center">
                         <p className="text-xs text-gray-500">{T.label}</p>
-                        <p className="font-bold text-[#1a1a1a]">{C(T.value)}</p>
+                        <p className="font-bold text-[#1a1a1a] text-sm">
+                          {!T.value || isNaN(T.value) || T.value === 0
+                            ? "Not enough inputs to price this category"
+                            : C(T.value)}
+                        </p>
                       </div>
                     ))}
                   </div>

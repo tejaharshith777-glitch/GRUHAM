@@ -52,6 +52,8 @@ export const PAGES = {
   ContractorRegister,
 };
 
+import { ToastProvider } from "@/components/Toast";
+
 export default function App() {
   const location = useLocation();
   const [showPreloader, setShowPreloader] = useState(true);
@@ -62,7 +64,8 @@ export default function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
+    <ToastProvider>
+      <ErrorBoundary>
       {showPreloader && <Preloader onComplete={handlePreloaderComplete} />}
       <Layout currentPageName={currentPageName}>
         <Suspense fallback={<PageSpinner />}>
@@ -79,5 +82,6 @@ export default function App() {
         </Suspense>
       </Layout>
     </ErrorBoundary>
+    </ToastProvider>
   );
 }

@@ -7,6 +7,7 @@ import {
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../lib/utils";
+import { Button } from "@/components/ui/button";
 
 const pricingPlans = [
   {
@@ -97,7 +98,7 @@ export default function Pricing() {
             Start free and upgrade as you grow. All plans include our core AI design features.
           </p>
           <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2 text-sm text-amber-800">
-            💳 Payments integration coming soon — sign up free now and credits will be awarded on launch
+            💳 Payments coming soon. All features are currently free while we are in beta.
           </div>
         </motion.div>
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -152,19 +153,21 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link to={createPageUrl(e.ctaLink)}>
-                <motion.button
-                  whileHover={{
-                    scale: 1.02,
-                  }}
-                  whileTap={{
-                    scale: 0.98,
-                  }}
-                  className={`w-full py-4 rounded-full font-semibold transition-all duration-300 ${e.popular ? "bg-white text-[#B8860B] hover:bg-gray-100" : "bg-[#B8860B] text-white hover:bg-[#1a1a1a]"}`}
+              {e.price === "0" ? (
+                <Link to={createPageUrl("BlueprintGenerator")}>
+                  <Button className="w-full py-6 rounded-full font-semibold bg-[#B8860B] text-white hover:bg-[#1a1a1a]">
+                    Get Started Free
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  disabled
+                  title="Payments are not live yet. Join the waitlist."
+                  className="w-full py-6 rounded-full font-semibold bg-gray-200 text-gray-500 cursor-not-allowed border border-gray-300"
                 >
-                  {e.cta}
-                </motion.button>
-              </Link>
+                  Coming soon
+                </Button>
+              )}
             </motion.div>
           ))}
         </div>

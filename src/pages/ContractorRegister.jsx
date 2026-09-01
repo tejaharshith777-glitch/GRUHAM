@@ -165,20 +165,62 @@ export default function ContractorRegister() {
         portfolio: w.portfolio.filter((C, E) => E !== N),
       }));
     },
+    [appId, setAppId] = useState(""),
     [errorMsg, setErrorMsg] = useState(""),
     S = async (N) => {
       N.preventDefault();
-      if (!e.name || !e.phone || !e.city || e.specializations.length === 0) {
-        setErrorMsg("Please fill all required fields (Name, Phone, City, and at least one Specialization)");
+      const phoneClean = e.phone.replace(/[\s\-\+]/g, "").replace(/^91/, "");
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^[6-9]\d{9}$/;
+
+      if (!e.name.trim()) {
+        setErrorMsg("Please enter your full name");
         return;
       }
+      if (!phoneRegex.test(phoneClean)) {
+        setErrorMsg("Please enter a valid 10-digit Indian mobile number starting with 6-9");
+        return;
+      }
+      if (!e.email.trim() || !emailRegex.test(e.email.trim())) {
+        setErrorMsg("Please enter a valid email address");
+        return;
+      }
+      if (!e.city) {
+        setErrorMsg("Please select your city");
+        return;
+      }
+      if (e.specializations.length === 0) {
+        setErrorMsg("Please select at least one specialization");
+        return;
+      }
+      
       setErrorMsg("");
       r(true);
       try {
-        await new Promise((res) => setTimeout(res, 800));
+        await new Promise((res) => setTimeout(res, 600));
+
+        // Generate application ID: GRH-APP-YYMMDD-XXXX
+        const now = new Date();
+        const yymmdd = now.toISOString().slice(2, 10).replace(/-/g, "");
+        const randomChars = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const generatedId = `GRH-APP-${yymmdd}-${randomChars}`;
+        setAppId(generatedId);
+
+        const newApplication = {
+          id: generatedId,
+          ...e,
+          phone: `+91 ${phoneClean}`,
+          submitted_at: new Date().toISOString(),
+        };
+
+        const existing = JSON.parse(localStorage.getItem("gruham_contractor_applications") || "[]");
+        existing.push(newApplication);
+        localStorage.setItem("gruham_contractor_applications", JSON.stringify(existing));
+
         l(true);
       } catch (w) {
         console.error("Submit error:", w);
+        setErrorMsg("Something went wrong. Please try again.");
       }
       r(false);
     };
@@ -198,15 +240,14 @@ export default function ContractorRegister() {
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <CircleCheckBig className="w-10 h-10 text-green-600" />
         </div>
-        <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-3">
-          Thank you for your interest!
+        <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] mb-2">
+          Registration Received!
         </h2>
-        <p className="text-gray-600 mb-2">
-          We are building the verified marketplace.
-        </p>
-        <p className="text-gray-500 text-sm mb-6">
-          Nothing is submitted and <strong>no profile is live yet</strong>.
-          We will email you when contractor applications open. Thank you for your patience.
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl py-2 px-4 mb-4 text-xs font-mono font-bold">
+          ID: {appId}
+        </div>
+        <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+          Saved on this device. We will email <strong>{e.email}</strong> when applications open.
         </p>
         <Button onClick={() => (window.location.href = "/")} className="rounded-full bg-[#B8860B]">
           Go to Home

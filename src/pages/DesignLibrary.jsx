@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/components/Toast";
 import {
   Box,
   Download,
@@ -20,18 +21,28 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function DesignLibrary() {
+  const { toast } = useToast();
   const [e, t] = useState("all"),
     [n, r] = useState(""),
     [o, l] = useState(null),
     [c, d] = useState("2d"),
     [h, p] = useState(0),
-    [toast, setToast] = useState(""),
     m = useQueryClient(),
     { data: y = [], isLoading: x } = useQuery({
       queryKey: ["savedDesigns"],
       queryFn: () => base44.entities.SavedDesign.list("-created_date"),
-    }),
-    j = useMutation({
+    });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const designId = params.get("id");
+    if (designId && y && y.length > 0) {
+      const found = y.find((item) => item.id === designId);
+      if (found) l(found);
+    }
+  }, [y]);
+
+  const j = useMutation({
       mutationFn: (w) => base44.entities.SavedDesign.delete(w),
       onSuccess: () =>
         m.invalidateQueries({
@@ -363,14 +374,23 @@ export default function DesignLibrary() {
                   variant="outline" 
                   className="flex-1 rounded-full"
                   onClick={() => {
-                    const url = window.location.origin + "?plan=" + o.id;
-                    navigator.clipboard.writeText(url);
-                    setToast("Shareable link copied!");
-                    setTimeout(() => setToast(""), 3000);
+                    const shareUrl = window.location.origin + "/DesignLibrary?id=" + o.id;
+                    navigator.clipboard.writeText(shareUrl);
+                    toast("Link copied to clipboard!", "success");
                   }}
                 >
                   <Share2 className="w-4 h-4 mr-2" />
                   Share Link
+                </Button>
+                <Button
+                  className="flex-1 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                  onClick={() => {
+                    const shareUrl = window.location.origin + "/DesignLibrary?id=" + o.id;
+                    const text = `Check out this home design on GRUHAM (${o.title}): ${shareUrl}`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+                  }}
+                >
+                  WhatsApp
                 </Button>
                 <Button variant="outline" onClick={() => l(null)} className="rounded-full">
                   Close

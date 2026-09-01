@@ -4,6 +4,7 @@ import {
   CircleCheckBig,
   Clock,
   Filter,
+  Lock,
   MapPin,
   MessageSquare,
   Phone,
@@ -400,14 +401,21 @@ export default function Contractors() {
                     </div>
                   </div>
                   <div className="p-4 bg-gray-50 flex gap-3">
-                    <a
-                      href={`tel:${x.phone}`}
-                      onClick={(N) => N.stopPropagation()}
-                      className="flex-1 flex items-center justify-center gap-2 bg-[#B8860B] text-white py-3 rounded-xl hover:bg-[#1a1a1a] transition-colors"
-                    >
-                      <Phone className="w-4 h-4" />
-                      Call Now
-                    </a>
+                    {/^\+91[6-9]\d{9}$/.test((x.phone || "").replace(/\s/g, "")) ? (
+                      <a
+                        href={`tel:${x.phone}`}
+                        onClick={(N) => N.stopPropagation()}
+                        className="flex-1 flex items-center justify-center gap-2 bg-[#B8860B] text-white py-3 rounded-xl hover:bg-[#1a1a1a] transition-colors"
+                      >
+                        <Phone className="w-4 h-4" />
+                        Call Now
+                      </a>
+                    ) : (
+                      <span className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-500 py-3 rounded-xl cursor-not-allowed text-xs font-medium border border-gray-200">
+                        <Lock className="w-4 h-4 text-gray-400" />
+                        Phone Hidden
+                      </span>
+                    )}
                     <button
                       onClick={(N) => {
                         (N.stopPropagation(), d(x));
@@ -578,13 +586,20 @@ export default function Contractors() {
                   </div>
                 )}
                 <div className="flex gap-3">
-                  <a
-                    href={`tel:${c.phone}`}
-                    className="flex-1 flex items-center justify-center gap-2 bg-[#B8860B] text-white py-4 rounded-xl font-semibold hover:bg-[#1a1a1a] transition-colors"
-                  >
-                    <Phone className="w-5 h-5" />
-                    {c.phone}
-                  </a>
+                  {/^\+91[6-9]\d{9}$/.test((c.phone || "").replace(/\s/g, "")) ? (
+                    <a
+                      href={`tel:${c.phone}`}
+                      className="flex-1 flex items-center justify-center gap-2 bg-[#B8860B] text-white py-4 rounded-xl font-semibold hover:bg-[#1a1a1a] transition-colors"
+                    >
+                      <Phone className="w-5 h-5" />
+                      {c.phone}
+                    </a>
+                  ) : (
+                    <span className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-500 py-4 rounded-xl font-semibold cursor-not-allowed border border-gray-200">
+                      <Lock className="w-5 h-5 text-gray-400" />
+                      Contact details hidden
+                    </span>
+                  )}
                   {c.email && (
                     <a
                       href={`mailto:${c.email}`}

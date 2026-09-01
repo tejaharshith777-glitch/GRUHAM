@@ -375,7 +375,7 @@ ${roomVal === "kitchen" ? "- Modular kitchen with Indian style stove setup, chim
             </div>
             <Button
               onClick={B}
-              disabled={!e || !n || _}
+              disabled={!n || _}
               className="w-full h-14 bg-gradient-to-r from-[#B8860B] to-[#D4A84B] text-white rounded-full font-semibold text-lg shadow-lg"
             >
               {_ ? (
