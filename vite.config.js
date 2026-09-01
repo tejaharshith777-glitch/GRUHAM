@@ -12,4 +12,15 @@ export default defineConfig({
     port: 5173,
     allowedHosts: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          framer: ["framer-motion"],
+          icons: ["lucide-react"],
+        },
+      },
+    },
+  },
 });
