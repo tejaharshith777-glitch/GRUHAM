@@ -1,9 +1,7 @@
 import { useRef, useState } from "react";
 import {
   Box,
-  Building,
   Download,
-  Eye,
   FileText,
   House,
   LoaderCircle,
@@ -12,8 +10,6 @@ import {
   Upload,
   WandSparkles,
   X,
-  ZoomIn,
-  ZoomOut,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "../lib/base44";

@@ -3,9 +3,7 @@ import { useToast } from "@/components/Toast";
 import {
   Box,
   Download,
-  Eye,
   FileText,
-  Filter,
   Folder,
   Heart,
   LoaderCircle,

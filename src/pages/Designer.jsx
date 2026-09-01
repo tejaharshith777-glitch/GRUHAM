@@ -1,11 +1,9 @@
 import { useRef, useState, useMemo } from "react";
 import {
   Box,
-  Building,
   Calculator,
   Copy,
   Download,
-  Eye,
   Image,
   IndianRupee,
   LoaderCircle,
