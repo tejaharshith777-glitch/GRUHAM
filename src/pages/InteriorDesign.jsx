@@ -7,7 +7,6 @@ import {
   Download,
   Laptop,
   LoaderCircle,
-  Rotate3d,
   Save,
   Sofa,
   Sparkles,
@@ -404,23 +403,7 @@ ${roomVal === "kitchen" ? "- Modular kitchen with Indian style stove setup, chim
           >
             <div className="bg-white rounded-3xl p-6 shadow-lg h-full min-h-[500px]">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-serif text-lg font-bold text-[#1a1a1a]">Your Design</h3>
-                {x && (
-                  <div className="flex gap-1 bg-gray-100 rounded-full p-1">
-                    <button
-                      onClick={() => w("2d")}
-                      className={`px-3 py-1 rounded-full text-xs ${N === "2d" ? "bg-[#B8860B] text-white" : ""}`}
-                    >
-                      2D
-                    </button>
-                    <button
-                      onClick={() => w("3d")}
-                      className={`px-3 py-1 rounded-full text-xs ${N === "3d" ? "bg-[#B8860B] text-white" : ""}`}
-                    >
-                      3D
-                    </button>
-                  </div>
-                )}
+                <h3 className="font-[#1a1a1a] font-serif text-lg font-bold">Your Design</h3>
               </div>
               <div className="aspect-[4/3] bg-gray-50 rounded-2xl flex items-center justify-center overflow-hidden relative">
                 {_ ? (
@@ -429,33 +412,7 @@ ${roomVal === "kitchen" ? "- Modular kitchen with Indian style stove setup, chim
                     <p className="text-gray-500">Creating your design...</p>
                   </div>
                 ) : x ? (
-                  N === "2d" ? (
-                    <img src={x} alt="Design" className="w-full h-full object-cover" />
-                  ) : (
-                    <div
-                      className="w-full h-full relative"
-                      style={{
-                        perspective: "1000px",
-                      }}
-                    >
-                      <motion.img
-                        src={x}
-                        alt="3D View"
-                        className="w-full h-full object-cover"
-                        style={{
-                          transform: `rotateY(${C}deg)`,
-                          transformStyle: "preserve-3d",
-                        }}
-                        animate={{
-                          rotateY: C,
-                        }}
-                      />
-                      <div className="absolute top-3 left-3 bg-[#B8860B] text-white px-3 py-1 rounded-full text-xs">
-                        <Box className="w-3 h-3 inline mr-1" />
-                        3D View
-                      </div>
-                    </div>
-                  )
+                  <img src={x} alt="Concept Render" className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center text-gray-400">
                     <Sofa className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -468,22 +425,6 @@ ${roomVal === "kitchen" ? "- Modular kitchen with Indian style stove setup, chim
                   </div>
                 )}
               </div>
-              {x && N === "3d" && (
-                <div className="flex justify-center gap-4 mt-4">
-                  <button
-                    onClick={() => E((A) => A - 30)}
-                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-[#B8860B] hover:text-white"
-                  >
-                    <Rotate3d className="w-5 h-5 -scale-x-100" />
-                  </button>
-                  <button
-                    onClick={() => E((A) => A + 30)}
-                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-[#B8860B] hover:text-white"
-                  >
-                    <Rotate3d className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
               {x && (
                 <div className="flex gap-3 mt-4">
                   <Button

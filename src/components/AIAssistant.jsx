@@ -49,7 +49,7 @@ export default function AIAssistant() {
         content: `Namaste! 🏠 I'm your Dream Home AI assistant. I can help you:
 
 • Design your dream house with AI
-• Find contractors near you
+• show you contractor profiles to shortlist
 • Estimate material costs
 • Guide you through the design process
 
@@ -97,7 +97,7 @@ What would you like to build today?`,
           suggestedPage = "Materials";
         }
       } else if (lower.includes("contractor") || lower.includes("builder")) {
-        response = "You can find local registered contractors on our Contractors page. (Note: The verified marketplace is launching soon!)";
+        response = "You can browse sample contractor profiles by city and specialisation on our Contractors page.";
         suggestedPage = "Contractors";
       } else if (lower.includes("interior") || lower.includes("room")) {
         response = "I can help you visualize your interior spaces. Try our Interior Design tool!";

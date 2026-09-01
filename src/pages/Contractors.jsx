@@ -112,7 +112,7 @@ export default function Contractors() {
           </p>
           {/* Honest status banner */}
           <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2 mb-4 text-sm text-amber-800">
-            ⚠️ Sample profiles — real verified contractor marketplace launching soon
+            ⚠️ Sample profiles for demonstration. GRUHAM has not verified these businesses. Contact details are hidden.
           </div>
           <div className="block">
             <Link to={createPageUrl("ContractorRegister")}>
@@ -340,7 +340,7 @@ export default function Contractors() {
                           <h3 className="font-serif text-lg font-bold text-[#1a1a1a] group-hover:text-[#B8860B] transition-colors">
                             {x.name}
                           </h3>
-                          {x.verified && <CircleCheckBig className="w-4 h-4 text-green-500" />}
+                          {x.verified === true && <CircleCheckBig className="w-4 h-4 text-green-500" />}
                         </div>
                         <div className="flex items-center gap-1 mt-1">
                           <MapPin className="w-3 h-3 text-[#B8860B]" />
@@ -498,7 +498,7 @@ export default function Contractors() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h2 className="font-serif text-2xl font-bold text-[#1a1a1a]">{c.name}</h2>
-                      {c.verified && <CircleCheckBig className="w-5 h-5 text-green-500" />}
+                      {c.verified === true && <CircleCheckBig className="w-5 h-5 text-green-500" />}
                     </div>
                     <div className="flex items-center gap-1 mt-1">
                       <MapPin className="w-4 h-4 text-[#B8860B]" />

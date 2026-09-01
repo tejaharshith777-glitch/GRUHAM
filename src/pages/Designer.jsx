@@ -10,7 +10,6 @@ import {
   IndianRupee,
   LoaderCircle,
   RefreshCw,
-  Rotate3d,
   Share2,
   Sparkles,
   Upload,
@@ -709,24 +708,6 @@ export default function Designer() {
                   </span>
                   Your Design Result
                 </h3>
-                {h && (
-                  <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1">
-                    <button
-                      onClick={() => S("2d")}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${_ === "2d" ? "bg-[#B8860B] text-white" : "text-gray-600 hover:text-[#B8860B]"}`}
-                    >
-                      <Eye className="w-4 h-4" />
-                      2D
-                    </button>
-                    <button
-                      onClick={() => S("3d")}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${_ === "3d" ? "bg-[#B8860B] text-white" : "text-gray-600 hover:text-[#B8860B]"}`}
-                    >
-                      <Box className="w-4 h-4" />
-                      3D
-                    </button>
-                  </div>
-                )}
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <AnimatePresence mode="wait">
@@ -764,87 +745,11 @@ export default function Designer() {
                       }}
                       className="w-full"
                     >
-                      {_ === "2d" ? (
-                        <img
-                          src={h}
-                          alt="Generated design"
-                          className="w-full h-auto rounded-2xl shadow-lg"
-                        />
-                      ) : (
-                        <div className="relative">
-                          <div
-                            className="w-full aspect-[4/3] rounded-2xl shadow-lg overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 relative"
-                            style={{
-                              perspective: "1000px",
-                            }}
-                          >
-                            <motion.div
-                              className="w-full h-full relative"
-                              style={{
-                                transformStyle: "preserve-3d",
-                                transform: `rotateY(${N}deg) rotateX(10deg)`,
-                              }}
-                              animate={{
-                                rotateY: N,
-                              }}
-                              transition={{
-                                duration: 0.5,
-                              }}
-                            >
-                              <img
-                                src={h}
-                                alt="3D View"
-                                className="w-full h-full object-cover"
-                                style={{
-                                  transform: "translateZ(50px)",
-                                  boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
-                                }}
-                              />
-                            </motion.div>
-                            <div className="absolute inset-0 pointer-events-none opacity-20">
-                              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#B8860B]/30 to-transparent" />
-                            </div>
-                            <div className="absolute top-4 left-4 bg-[#B8860B] text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                              <Box className="w-4 h-4" />
-                              3D View
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-center gap-4 mt-4">
-                            <button
-                              onClick={() => w((B) => B - 30)}
-                              className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-[#B8860B] hover:text-white transition-colors"
-                            >
-                              <Rotate3d className="w-5 h-5 transform -scale-x-100" />
-                            </button>
-                            <span className="text-sm text-gray-500">Rotate View</span>
-                            <button
-                              onClick={() => w((B) => B + 30)}
-                              className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-[#B8860B] hover:text-white transition-colors"
-                            >
-                              <Rotate3d className="w-5 h-5" />
-                            </button>
-                          </div>
-                          <div className="flex justify-center gap-2 mt-3">
-                            {[0, 45, 90, -45, -90].map((B) => (
-                              <button
-                                key={B}
-                                onClick={() => w(B)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${N === B ? "bg-[#B8860B] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-                              >
-                                {B === 0
-                                  ? "Front"
-                                  : B === 45
-                                    ? "Right 45°"
-                                    : B === 90
-                                      ? "Right"
-                                      : B === -45
-                                        ? "Left 45°"
-                                        : "Left"}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <img
+                        src={h}
+                        alt="Generated concept design"
+                        className="w-full h-auto rounded-2xl shadow-lg"
+                      />
                       <div className="flex gap-4 mt-6">
                         <a
                           href={h}

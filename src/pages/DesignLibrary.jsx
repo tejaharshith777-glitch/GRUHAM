@@ -8,7 +8,6 @@ import {
   Folder,
   Heart,
   LoaderCircle,
-  Rotate3d,
   Search,
   Share2,
   Trash2,
@@ -91,7 +90,7 @@ export default function DesignLibrary() {
             Your Saved Designs
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-2">
-            Browse, view, and manage all your AI-generated blueprints and 3D visualizations
+            Browse, view, and manage all your AI-generated blueprints and elevation concepts
           </p>
           <p className="text-sm text-[#B8860B] bg-amber-50 rounded-full px-3 py-1 inline-block">
             Saved in this browser; cloud backup is next.
@@ -265,24 +264,6 @@ export default function DesignLibrary() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-serif text-2xl font-bold text-[#1a1a1a]">{o.title}</h2>
-                <div className="flex gap-2">
-                  {o.visualization_url && (
-                    <div className="flex gap-1 bg-gray-100 rounded-full p-1">
-                      <button
-                        onClick={() => d("2d")}
-                        className={`px-3 py-1 rounded-full text-xs ${c === "2d" ? "bg-[#B8860B] text-white" : ""}`}
-                      >
-                        2D
-                      </button>
-                      <button
-                        onClick={() => d("3d")}
-                        className={`px-3 py-1 rounded-full text-xs ${c === "3d" ? "bg-[#B8860B] text-white" : ""}`}
-                      >
-                        3D
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
               <div className="grid md:grid-cols-2 gap-4 mb-6">
                 {o.blueprint_url && (
@@ -298,43 +279,13 @@ export default function DesignLibrary() {
                   <div>
                     <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1">
                       <Box className="w-4 h-4" />
-                      3D Visualization
+                      Elevation Render
                     </h4>
-                    {c === "2d" ? (
-                      <img
-                        src={o.visualization_url}
-                        alt="Visualization"
-                        className="w-full rounded-xl"
-                      />
-                    ) : (
-                      <div className="relative">
-                        <motion.img
-                          src={o.visualization_url}
-                          alt="3D View"
-                          className="w-full rounded-xl"
-                          style={{
-                            transform: `rotateY(${h}deg)`,
-                          }}
-                          animate={{
-                            rotateY: h,
-                          }}
-                        />
-                        <div className="flex justify-center gap-4 mt-2">
-                          <button
-                            onClick={() => p((w) => w - 30)}
-                            className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
-                          >
-                            <Rotate3d className="w-4 h-4 -scale-x-100" />
-                          </button>
-                          <button
-                            onClick={() => p((w) => w + 30)}
-                            className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
-                          >
-                            <Rotate3d className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    <img
+                      src={o.visualization_url}
+                      alt="Elevation Render"
+                      className="w-full rounded-xl"
+                    />
                   </div>
                 )}
               </div>

@@ -8,7 +8,6 @@ import {
   House,
   LoaderCircle,
   RefreshCw,
-  Rotate3d,
   Save,
   Upload,
   WandSparkles,
@@ -147,9 +146,9 @@ Create a detailed architectural blueprint showing:
           K = await base44.integrations.Core.GenerateImage({
             prompt: Ne,
           });
-        (U(K.url), re("Creating 3D visualization..."));
+        (U(K.url), re("Generating elevation concept..."));
         const ue = houseStyles.find((Ae) => Ae.id === m)?.name || "Modern",
-          je = `Photorealistic 3D exterior visualization of an Indian house:
+          je = `Photorealistic exterior elevation render of an Indian house:
 ${x || "3 BHK"} ${_ || "G+1"} ${ue} style house
 Plot size: ${N || "1500"} sq ft
 ${h ? `Features: ${h}` : ""}
@@ -426,7 +425,7 @@ High quality architectural rendering, professional photography style`,
               ) : (
                 <>
                   <WandSparkles className="w-5 h-5 mr-2" />
-                  Generate Blueprint & 3D
+                  Generate Blueprint & Render
                 </>
               )}
             </Button>
@@ -464,63 +463,16 @@ High quality architectural rendering, professional photography style`,
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-serif text-lg font-bold text-[#1a1a1a] flex items-center gap-2">
                   <Box className="w-5 h-5 text-[#B8860B]" />
-                  3D Visualization
+                  Elevation Concept
                 </h3>
-                {A && (
-                  <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1">
-                    <button
-                      onClick={() => be("2d")}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${ae === "2d" ? "bg-[#B8860B] text-white" : "text-gray-600"}`}
-                    >
-                      <Eye className="w-3 h-3 inline mr-1" />
-                      2D
-                    </button>
-                    <button
-                      onClick={() => be("3d")}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${ae === "3d" ? "bg-[#B8860B] text-white" : "text-gray-600"}`}
-                    >
-                      <Box className="w-3 h-3 inline mr-1" />
-                      3D
-                    </button>
-                  </div>
-                )}
               </div>
               <div className="aspect-[4/3] bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl flex items-center justify-center overflow-hidden relative">
                 {A ? (
-                  ae === "2d" ? (
-                    <img src={A} alt="Visualization" className="w-full h-full object-cover" />
-                  ) : (
-                    <div
-                      className="w-full h-full relative"
-                      style={{
-                        perspective: "1000px",
-                      }}
-                    >
-                      <motion.img
-                        src={A}
-                        alt="3D View"
-                        className="w-full h-full object-cover"
-                        style={{
-                          transform: `rotateY(${oe}deg) scale(${V})`,
-                          transformStyle: "preserve-3d",
-                        }}
-                        animate={{
-                          rotateY: oe,
-                        }}
-                        transition={{
-                          duration: 0.5,
-                        }}
-                      />
-                      <div className="absolute top-3 left-3 bg-[#B8860B] text-white px-3 py-1 rounded-full text-xs font-medium">
-                        <Box className="w-3 h-3 inline mr-1" />
-                        3D View
-                      </div>
-                    </div>
-                  )
+                  <img src={A} alt="Elevation Concept" className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center text-gray-400">
                     <Box className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>3D visualization will appear here</p>
+                    <p>Elevation concept will appear here</p>
                   </div>
                 )}
                 {A && (
@@ -529,40 +481,6 @@ High quality architectural rendering, professional photography style`,
                   </div>
                 )}
               </div>
-              {A && ae === "3d" && (
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center justify-center gap-4">
-                    <button
-                      onClick={() => ie((Y) => Y - 30)}
-                      className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-[#B8860B] hover:text-white transition-colors"
-                    >
-                      <Rotate3d className="w-5 h-5 transform -scale-x-100" />
-                    </button>
-                    <span className="text-sm text-gray-500">Rotate</span>
-                    <button
-                      onClick={() => ie((Y) => Y + 30)}
-                      className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-[#B8860B] hover:text-white transition-colors"
-                    >
-                      <Rotate3d className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-center gap-4">
-                    <button
-                      onClick={() => se((Y) => Math.max(0.5, Y - 0.2))}
-                      className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-[#B8860B] hover:text-white transition-colors"
-                    >
-                      <ZoomOut className="w-5 h-5" />
-                    </button>
-                    <span className="text-sm text-gray-500">Zoom</span>
-                    <button
-                      onClick={() => se((Y) => Math.min(2, Y + 0.2))}
-                      className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-[#B8860B] hover:text-white transition-colors"
-                    >
-                      <ZoomIn className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              )}
               {(B || A) && (
                 <div className="flex gap-3 mt-4">
                   <Button

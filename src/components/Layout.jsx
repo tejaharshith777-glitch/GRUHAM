@@ -241,7 +241,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <p className="text-sm leading-relaxed text-gray-300 mb-5 max-w-xs">
                 AI-assisted home design and cost planning for Indian homeowners.
-                Concept plans, itemised estimates, and verified contractors — all in one place.
+                Concept plans and itemised estimates — all in one place.
               </p>
               {/* Contact via email */}
               <div className="flex gap-3">

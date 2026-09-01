@@ -49,7 +49,7 @@ const steps = [
   {
     step: "04",
     icon: HardHat,
-    title: "Connect with registered contractors & track the build",
+    title: "Browse contractor profiles & request a quote",
     description:
       "Browse our contractor directory, shortlist profiles by city, specialisation, and rating, and send a request for quote. Once work begins, track milestones and spending in the Project Tracker.",
     detail: "Contractor marketplace launching soon",

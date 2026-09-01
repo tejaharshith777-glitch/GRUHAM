@@ -516,8 +516,8 @@ function WhyChooseUs() {
                 }}
                 className="font-sans text-lg text-gray-600 leading-relaxed mb-8 max-w-3xl mx-auto"
               >
-                Design your dream home with AI. Generate professional blueprints, stunning 3D
-                visualizations, and accurate cost estimates—all tailored for Indian homes. Build
+                Design your dream home with AI. Generate professional blueprints, itemised cost
+                estimates, and material breakdowns—all tailored for Indian homes. Build
                 with confidence, not guesswork.
               </motion.p>
             </div>
