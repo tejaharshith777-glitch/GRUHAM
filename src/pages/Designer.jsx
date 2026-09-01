@@ -260,8 +260,8 @@ export default function Designer() {
         {/* ── Tab selector ─────────────────────────────────────────────── */}
         <div className="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm w-fit mx-auto mb-10">
           {[
-            { id: "plot",     label: "Plan My Plot",         Icon: Building },
-            { id: "interior", label: "Interior Design Studio", Icon: Sparkles },
+            { id: "plot",     label: "Plan My Plot",   Icon: Building },
+            { id: "interior", label: "Restyle a Room", Icon: Sparkles },
           ].map(({ id, label, Icon }) => (
             <button
               key={id}

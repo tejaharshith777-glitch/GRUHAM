@@ -23,6 +23,7 @@ const pricingPlans = [
       "Email support",
     ],
     cta: "Get Started Free",
+    ctaLink: "BlueprintGenerator",
     popular: false,
     color: "gray",
   },
@@ -30,7 +31,7 @@ const pricingPlans = [
     name: "Pro",
     price: "199",
     period: "month",
-    description: "For homeowners and design enthusiasts",
+    description: "For homeowners and design enthusiasts (Coming Soon)",
     icon: Zap,
     features: [
       "100 AI design generations/month",
@@ -41,7 +42,8 @@ const pricingPlans = [
       "Download in multiple formats",
       "Priority support",
     ],
-    cta: "Start Pro Trial",
+    cta: "Join Pro Waitlist",
+    ctaLink: "Contact",
     popular: true,
     color: "gold",
   },
@@ -49,7 +51,7 @@ const pricingPlans = [
     name: "Business",
     price: "499",
     period: "month",
-    description: "For professionals and agencies",
+    description: "For professionals and agencies (Coming Soon)",
     icon: Crown,
     features: [
       "Unlimited AI generations",
@@ -61,6 +63,7 @@ const pricingPlans = [
       "Team collaboration (coming soon)",
     ],
     cta: "Contact Sales",
+    ctaLink: "Contact",
     popular: false,
     color: "dark",
   },
@@ -149,7 +152,7 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link to={createPageUrl("Designer")}>
+              <Link to={createPageUrl(e.ctaLink)}>
                 <motion.button
                   whileHover={{
                     scale: 1.02,

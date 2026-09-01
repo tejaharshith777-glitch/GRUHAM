@@ -138,10 +138,12 @@ const sections = [
 ];
 
 function Section({ section }) {
-  const [open, setOpen] = useState(section.id === "ai-disclaimer");
+  const [open, setOpen] = useState(
+    section.id === "ai-disclaimer" || window.location.hash === `#${section.id}`
+  );
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div id={section.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden scroll-mt-24">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
@@ -175,6 +177,15 @@ function Section({ section }) {
 }
 
 export default function Legal() {
+  useEffect(() => {
+    if (window.location.hash) {
+      const el = document.getElementById(window.location.hash.substring(1));
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 100);
+      }
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-20">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
