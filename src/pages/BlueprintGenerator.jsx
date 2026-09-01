@@ -95,11 +95,11 @@ export default function BlueprintGenerator() {
     [o, l] = useState(null),
     [c, d] = useState(false),
     [h, p] = useState(""),
-    [m, y] = useState(""),
-    [x, j] = useState(""),
-    [_, S] = useState(""),
-    [N, w] = useState(""),
-    [C, E] = useState(""),
+    [m, y] = useState("modern"),
+    [x, j] = useState("3 BHK"),
+    [_, S] = useState("G+1"),
+    [N, w] = useState("1500"),
+    [C, E] = useState("₹40-60 Lakhs"),
     [T, P] = useState(true),
     [B, U] = useState(null),
     [A, G] = useState(null),
@@ -108,6 +108,7 @@ export default function BlueprintGenerator() {
     [ae, be] = useState("2d"),
     [oe, ie] = useState(0),
     [V, se] = useState(1),
+    [toast, setToast] = useState(""),
     te = useRef(null),
     M = async (Y) => {
       const ve = Y.target.files[0];
@@ -190,6 +191,24 @@ High quality architectural rendering, professional photography style`,
         setTimeout(() => setToast(""), 3000);
       } catch (ve) {
         console.error("Save error:", ve);
+      }
+    },
+    handleDownload = async () => {
+      const targetUrl = B || A;
+      if (!targetUrl) return;
+      try {
+        const res = await fetch(targetUrl);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `gruham-blueprint-${x || "3BHK"}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch {
+        window.open(targetUrl, "_blank");
       }
     };
   return (
@@ -554,9 +573,13 @@ High quality architectural rendering, professional photography style`,
                     <Save className="w-4 h-4 mr-2" />
                     Save
                   </Button>
-                  <Button className="flex-1 rounded-full bg-gray-300 text-gray-600 cursor-not-allowed" title="Concept images cannot be downloaded directly. Save to library instead.">
+                  <Button
+                    onClick={handleDownload}
+                    variant="outline"
+                    className="flex-1 rounded-full border-[#B8860B] text-[#B8860B] hover:bg-[#B8860B] hover:text-white"
+                  >
                     <Download className="w-4 h-4 mr-2" />
-                    Download (Disabled)
+                    Download
                   </Button>
                   <Button 
                     onClick={() => window.open(`https://wa.me/?text=Check out my AI-generated blueprint concept from Gruham!`, "_blank")}
