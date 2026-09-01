@@ -1,6 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useCallback } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Layout from "@/components/Layout";
+import Preloader from "@/components/Preloader";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Home from "@/pages/Home";
 
 // Code-split every page except Home (keep initial bundle small)
@@ -52,25 +54,33 @@ export const PAGES = {
 
 export default function App() {
   const location = useLocation();
+  const [showPreloader, setShowPreloader] = useState(true);
   const currentPageName = location.pathname.slice(1) || "Home";
 
+  const handlePreloaderComplete = useCallback(() => {
+    setShowPreloader(false);
+  }, []);
+
   return (
-    <Layout currentPageName={currentPageName}>
-      <Suspense fallback={<PageSpinner />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          {Object.entries(PAGES).map(([name, Page]) => (
-            <Route key={name} path={`/${name}`} element={<Page />} />
-          ))}
-          {/* Legacy redirects for deleted pages */}
-          <Route path="/Services" element={<HowItWorks />} />
-          <Route path="/Team" element={<About />} />
-          <Route path="/Sitemap" element={<Legal />} />
-          <Route path="/BookingNotifications" element={<Home />} />
-          <Route path="/AdminBookings" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </Layout>
+    <ErrorBoundary>
+      {showPreloader && <Preloader onComplete={handlePreloaderComplete} />}
+      <Layout currentPageName={currentPageName}>
+        <Suspense fallback={<PageSpinner />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            {Object.entries(PAGES).map(([name, Page]) => (
+              <Route key={name} path={`/${name}`} element={<Page />} />
+            ))}
+            {/* Legacy redirects for deleted pages */}
+            <Route path="/Services" element={<HowItWorks />} />
+            <Route path="/Team" element={<About />} />
+            <Route path="/Sitemap" element={<Legal />} />
+            <Route path="/BookingNotifications" element={<Home />} />
+            <Route path="/AdminBookings" element={<Home />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </Layout>
+    </ErrorBoundary>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   ArrowRight,
   Bath,
@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "../lib/utils";
 import { computeBOQ, CITY_NAMES, inrShort } from "@/lib/boq";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const heroSlides = [
   {
@@ -103,7 +104,7 @@ function HeroCarousel() {
   const [city, setCity] = useState("Chennai");
   const navigate = useNavigate();
 
-  const est = React.useMemo(() => {
+  const est = useMemo(() => {
     let sqft = parseFloat(plot) || 0;
     if (unit === "sq m") {
       sqft = sqft * 10.7639;
@@ -249,74 +250,83 @@ function HeroCarousel() {
         </div>
 
         <div className="lg:col-span-5 hidden lg:block">
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-2xl"
+          <ErrorBoundary
+            fallback={
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-2xl text-center">
+                <h3 className="font-serif text-xl font-bold text-white mb-2">Quick Cost Estimate</h3>
+                <p className="text-white/70 text-sm">Estimator is currently unavailable. Please try refreshing.</p>
+              </div>
+            }
           >
-            <h3 className="font-serif text-2xl font-bold text-white mb-6 flex items-center gap-2">
-              <IndianRupee className="w-6 h-6 text-[#B8860B]" /> Quick Cost Estimate
-            </h3>
-            <div className="space-y-5">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-white/80 text-sm font-medium">Built-up Area</label>
-                  <div className="flex bg-white/20 rounded-md overflow-hidden text-xs">
-                    <button 
-                      onClick={() => setUnit("sq ft")}
-                      className={`px-2 py-1 ${unit === "sq ft" ? "bg-[#B8860B] text-white" : "text-white/70 hover:text-white"}`}
-                    >
-                      sq ft
-                    </button>
-                    <button 
-                      onClick={() => setUnit("sq m")}
-                      className={`px-2 py-1 ${unit === "sq m" ? "bg-[#B8860B] text-white" : "text-white/70 hover:text-white"}`}
-                    >
-                      sq m
-                    </button>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-2xl"
+            >
+              <h3 className="font-serif text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <IndianRupee className="w-6 h-6 text-[#B8860B]" /> Quick Cost Estimate
+              </h3>
+              <div className="space-y-5">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-white/80 text-sm font-medium">Built-up Area</label>
+                    <div className="flex bg-white/20 rounded-md overflow-hidden text-xs">
+                      <button 
+                        onClick={() => setUnit("sq ft")}
+                        className={`px-2 py-1 ${unit === "sq ft" ? "bg-[#B8860B] text-white" : "text-white/70 hover:text-white"}`}
+                      >
+                        sq ft
+                      </button>
+                      <button 
+                        onClick={() => setUnit("sq m")}
+                        className={`px-2 py-1 ${unit === "sq m" ? "bg-[#B8860B] text-white" : "text-white/70 hover:text-white"}`}
+                      >
+                        sq m
+                      </button>
+                    </div>
                   </div>
+                  <input
+                    type="number"
+                    placeholder={unit === "sq ft" ? "e.g. 1500" : "e.g. 140"}
+                    value={plot}
+                    onChange={(e) => setPlot(e.target.value)}
+                    className="w-full h-12 bg-white/20 border border-white/30 rounded-xl px-4 text-white placeholder-white/50 focus:outline-none focus:border-[#B8860B]"
+                  />
                 </div>
-                <input
-                  type="number"
-                  placeholder={unit === "sq ft" ? "e.g. 1500" : "e.g. 140"}
-                  value={plot}
-                  onChange={(e) => setPlot(e.target.value)}
-                  className="w-full h-12 bg-white/20 border border-white/30 rounded-xl px-4 text-white placeholder-white/50 focus:outline-none focus:border-[#B8860B]"
-                />
-              </div>
-              <div>
-                <label className="text-white/80 text-sm font-medium mb-1 block">City</label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full h-12 bg-white/20 border border-white/30 rounded-xl px-4 text-white focus:outline-none focus:border-[#B8860B] [&>option]:text-black"
-                >
-                  {CITY_NAMES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              
-              <div className="h-24 flex flex-col justify-center">
-                {est ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    <p className="text-[#B8860B] font-serif text-3xl font-bold">
-                      {inrShort(est.band_low)} – {inrShort(est.band_high)}
-                    </p>
-                    <p className="text-white/70 text-sm mt-1">For standard finishes in {city}</p>
-                  </motion.div>
-                ) : (
-                  <p className="text-white/50 text-sm">Enter at least {unit === "sq ft" ? "600" : "55"} {unit} to see an estimate.</p>
-                )}
-              </div>
+                <div>
+                  <label className="text-white/80 text-sm font-medium mb-1 block">City</label>
+                  <select
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full h-12 bg-white/20 border border-white/30 rounded-xl px-4 text-white focus:outline-none focus:border-[#B8860B] [&>option]:text-black"
+                  >
+                    {CITY_NAMES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                
+                <div className="h-24 flex flex-col justify-center">
+                  {est ? (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <p className="text-[#B8860B] font-serif text-3xl font-bold">
+                        {inrShort(est.band_low)} – {inrShort(est.band_high)}
+                      </p>
+                      <p className="text-white/70 text-sm mt-1">For standard finishes in {city}</p>
+                    </motion.div>
+                  ) : (
+                    <p className="text-white/50 text-sm">Enter at least {unit === "sq ft" ? "600" : "55"} {unit} to see an estimate.</p>
+                  )}
+                </div>
 
-              <button
-                onClick={() => navigate(createPageUrl("Designer"))}
-                className="w-full h-12 bg-[#B8860B] hover:bg-[#D4A84B] text-white rounded-xl font-semibold transition-colors"
-              >
-                Plan Full Details
-              </button>
-            </div>
-          </motion.div>
+                <button
+                  onClick={() => navigate(createPageUrl("Designer"))}
+                  className="w-full h-12 bg-[#B8860B] hover:bg-[#D4A84B] text-white rounded-xl font-semibold transition-colors"
+                >
+                  Plan Full Details
+                </button>
+              </div>
+            </motion.div>
+          </ErrorBoundary>
         </div>
         </div>
       </div>

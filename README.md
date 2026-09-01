@@ -51,6 +51,13 @@ npm run build      # production build into dist/
 npm run preview    # serve the production build
 ```
 
+### Pre-Deploy Verification
+Before pushing or deploying updates, run:
+```bash
+npm run build && npm run preview
+```
+Then open `http://localhost:4173` in your browser to confirm the homepage and routes render without blank screens or console errors.
+
 No API key, database or environment variable is required — the app boots with demo
 data and a built-in offline AI engine.
 
