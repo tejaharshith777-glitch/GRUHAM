@@ -497,10 +497,26 @@ export default function Materials() {
   const [e, t] = useState(""),
     [n, r] = useState("All"),
     [o, l] = useState("Mumbai"),
-    [c, d] = useState(false),
-    [h, p] = useState(""),
+    [c, d] = useState(true),
+    [h, p] = useState("1500"),
     [m, y] = useState("standard"),
-    [x, j] = useState(null),
+    [x, j] = useState(() => {
+      const boq = computeBOQ({ builtUpArea: 1500, city: "Mumbai", finish: "standard" });
+      return {
+        structural: boq.categories["Structural"]?.subtotal || 0,
+        flooring: boq.categories["Flooring"]?.subtotal || 0,
+        plumbing: boq.categories["Plumbing"]?.subtotal || 0,
+        electrical: boq.categories["Electrical"]?.subtotal || 0,
+        painting: boq.categories["Painting"]?.subtotal || 0,
+        doors_windows: boq.categories["Doors & Windows"]?.subtotal || 0,
+        kitchen: boq.categories["Kitchen"]?.subtotal || 0,
+        misc_finishing: boq.categories["Misc Finishing"]?.subtotal || 0,
+        labour: Math.round(boq.grand_total * 0.22),
+        total: boq.grand_total,
+        per_sqft_cost: boq.per_sqft,
+        notes: `Estimate based on 1,500 sq ft in Mumbai with standard finish.`
+      };
+    }),
     [_, S] = useState(false),
     [emiRate, setEmiRate] = useState(8.5),
     [emiTenure, setEmiTenure] = useState(20),
@@ -518,20 +534,19 @@ export default function Materials() {
           const sqft = parseFloat(h);
           if (sqft > 0) {
             const boq = computeBOQ({ builtUpArea: sqft, city: o, finish: m });
-            // Adapt boq to what the UI expects
             j({
-              structural: boq.structural,
-              flooring: boq.flooring,
-              plumbing: boq.plumbing,
-              electrical: boq.electrical,
-              painting: boq.painting,
-              doors_windows: boq.doors_windows,
-              kitchen: boq.kitchen || 0,
-              misc_finishing: boq.misc,
-              labour: boq.labour_estimate,
-              total: boq.band_low,
-              per_sqft_cost: Math.round(boq.band_low / sqft),
-              notes: `Estimate based on ${sqft} sq ft in ${o} with ${m} finish.`
+              structural: boq.categories["Structural"]?.subtotal || 0,
+              flooring: boq.categories["Flooring"]?.subtotal || 0,
+              plumbing: boq.categories["Plumbing"]?.subtotal || 0,
+              electrical: boq.categories["Electrical"]?.subtotal || 0,
+              painting: boq.categories["Painting"]?.subtotal || 0,
+              doors_windows: boq.categories["Doors & Windows"]?.subtotal || 0,
+              kitchen: boq.categories["Kitchen"]?.subtotal || 0,
+              misc_finishing: boq.categories["Misc Finishing"]?.subtotal || 0,
+              labour: Math.round(boq.grand_total * 0.22),
+              total: boq.grand_total,
+              per_sqft_cost: boq.per_sqft,
+              notes: `Estimate based on ${sqft.toLocaleString("en-IN")} sq ft in ${o} with ${m} finish.`
             });
           }
           S(false);
