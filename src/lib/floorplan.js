@@ -1,6 +1,6 @@
 /**
  * GRUHAM Deterministic Floor Plan Engine
- * Fully offline, O(n) room placement via rectangle slicing.
+ * Fully offline, proportional grid layout engine.
  *
  * Inputs:  { plotL, plotW, facing, floors, bhk, city, finish, parking }
  * Outputs: { rooms[], totals{}, vastuNotes{}, error? }
@@ -9,17 +9,17 @@
  * Rates reviewed: August 2026
  */
 
-// ─── Indian Room Minimums (ft) ─────────────────────────────────────────────
+// ─── Indian Room Specs & Vastu Zones ─────────────────────────────────────────
 const MINS = {
-  living:    { w: 14, h: 16, label: "Living Room",      zone: "NE" },
-  kitchen:   { w:  8, h: 10, label: "Kitchen",          zone: "SE" },
-  master:    { w: 12, h: 12, label: "Master Bedroom",   zone: "SW" },
-  bedroom:   { w: 10, h: 11, label: "Bedroom",          zone: "NW" },
-  bathroom:  { w:  5, h:  7, label: "Bathroom",         zone: "S"  },
-  parking:   { w:  9, h: 17, label: "Parking",          zone: "N"  },
-  balcony:   { w:  4, h:  8, label: "Balcony",          zone: "E"  },
-  staircase: { w:  4, h: 10, label: "Staircase",        zone: "S"  },
-  pooja:     { w:  3, h:  4, label: "Pooja Room",       zone: "NE" },
+  living:    { label: "Living Room",      zone: "NE" },
+  kitchen:   { label: "Kitchen",          zone: "SE" },
+  master:    { label: "Master Bedroom",   zone: "SW" },
+  bedroom:   { label: "Bedroom",          zone: "NW" },
+  bathroom:  { label: "Bathroom",         zone: "S"  },
+  parking:   { label: "Parking",          zone: "N"  },
+  balcony:   { label: "Balcony",          zone: "E"  },
+  staircase: { label: "Staircase",        zone: "S"  },
+  pooja:     { label: "Pooja Room",       zone: "NE" },
 };
 
 const WALL = 0.75; // ft
@@ -46,7 +46,6 @@ function roomMixFromBHK(bhk) {
   const rooms = ["living", "kitchen"];
   if (n >= 1) rooms.push("master");
   for (let i = 1; i < n; i++) rooms.push("bedroom");
-  // bathrooms: 1 per bedroom, min 1
   const bathrooms = Math.max(1, Math.ceil(n * 0.8));
   for (let i = 0; i < bathrooms; i++) rooms.push("bathroom");
   rooms.push("pooja");
@@ -59,94 +58,89 @@ function minPlotForBHK(bhk) {
   const n = typeof bhk === "string"
     ? parseInt(bhk.replace(/[^0-9]/g, "")) || 2
     : (bhk || 2);
-  // rough: each BHK needs ~200 sqft footprint
   return Math.max(600, n * 220 + 200);
 }
 
-// ─── Rectangle slicer ─────────────────────────────────────────────────────────
+// ─── Zoned Proportional Layout Engine ───────────────────────────────────────
 /**
- * Greedily places rooms into a rectangular plot using a top-down, left-right
- * band approach. Returns placed rooms with x, y, w, h in feet.
+ * Organizes rooms into a 3-row zoned grid covering 100% of usable plot area.
+ * Prevents horizontal overflow, text collision, and empty plot spaces.
  */
 function sliceRooms(plotL, plotW, roomTypes, hasParking, hasStaircase) {
   const placed = [];
-  // Available area starts at (0, 0)
-  let cursorX = WALL;
-  let cursorY = WALL;
-  let rowH = 0;
   const usableW = plotL - WALL * 2;
   const usableH = plotW - WALL * 2;
 
-  function place(type, idx = 0) {
-    const spec = MINS[type];
-    if (!spec) return false;
-    const rw = Math.min(spec.w, usableW);
-    const rh = spec.h;
+  // Row 1 (Front/North): Parking (if any), Living Room, Pooja Room
+  const row1 = [];
+  if (hasParking) row1.push({ type: "parking", weight: 1.4 });
+  row1.push({ type: "living", weight: 2.2 });
+  row1.push({ type: "pooja", weight: 0.7 });
 
-    // If room doesn't fit in current row, wrap
-    if (cursorX + rw > usableW + WALL * 2) {
-      cursorY += rowH + WALL;
-      cursorX = WALL;
-      rowH = 0;
-    }
-    if (cursorY + rh > usableH + WALL * 2) return false; // doesn't fit at all
+  // Row 2 (Middle): Kitchen, Staircase (if multi-floor), Common Bath
+  const row2 = [{ type: "kitchen", weight: 1.4 }];
+  if (hasStaircase) row2.push({ type: "staircase", weight: 1.0 });
 
-    const label = idx > 0 ? `${spec.label} ${idx + 1}` : spec.label;
-    placed.push({
-      type,
-      name: label,
-      x: Math.round(cursorX * 10) / 10,
-      y: Math.round(cursorY * 10) / 10,
-      w: Math.round(rw * 10) / 10,
-      h: Math.round(rh * 10) / 10,
-      area_sqft: Math.round(rw * rh),
-      zone: spec.zone,
+  const bedrooms = roomTypes.filter((t) => t === "master" || t === "bedroom");
+  const bathrooms = roomTypes.filter((t) => t === "bathroom");
+
+  if (bathrooms.length > 0) {
+    row2.push({ type: "bathroom", weight: 0.8, idx: 0 });
+  }
+
+  // Row 3 (Rear/South): Master Bedroom, Bedrooms, Attached Baths, Balcony
+  const row3 = [];
+  const bedCount = { master: 0, bedroom: 0 };
+  bedrooms.forEach((t) => {
+    row3.push({ type: t, weight: t === "master" ? 1.8 : 1.5, idx: bedCount[t]++ });
+  });
+
+  for (let i = 1; i < bathrooms.length; i++) {
+    row3.push({ type: "bathroom", weight: 0.8, idx: i });
+  }
+
+  if (roomTypes.includes("balcony")) {
+    row3.push({ type: "balcony", weight: 0.8 });
+  }
+
+  const rows = [row1, row2, row3];
+  const rowHeights = [usableH * 0.30, usableH * 0.32, usableH * 0.38];
+
+  let currentY = WALL;
+
+  rows.forEach((rowRooms, rIdx) => {
+    const rowH = rowHeights[rIdx];
+    const totalWeight = rowRooms.reduce((sum, r) => sum + r.weight, 0);
+
+    let currentX = WALL;
+    rowRooms.forEach((rObj) => {
+      const roomW = (rObj.weight / totalWeight) * usableW;
+      const spec = MINS[rObj.type] || { label: rObj.type, zone: "NE" };
+      const label = rObj.idx !== undefined && rObj.idx > 0
+        ? `${spec.label} ${rObj.idx + 1}`
+        : spec.label;
+
+      placed.push({
+        type: rObj.type,
+        name: label,
+        x: Math.round(currentX * 10) / 10,
+        y: Math.round(currentY * 10) / 10,
+        w: Math.round(roomW * 10) / 10,
+        h: Math.round(rowH * 10) / 10,
+        area_sqft: Math.round(roomW * rowH),
+        zone: spec.zone,
+      });
+
+      currentX += roomW;
     });
 
-    cursorX += rw + WALL;
-    rowH = Math.max(rowH, rh);
-    return true;
-  }
-
-  // Priority order: parking, living, kitchen, master, bedrooms, bathrooms, balcony, pooja, staircase
-  if (hasParking) place("parking");
-  place("living");
-  place("kitchen");
-
-  const bedTypes = roomTypes.filter(t => t === "master" || t === "bedroom");
-  const bathTypes = roomTypes.filter(t => t === "bathroom");
-  const otherTypes = roomTypes.filter(t => !["living","kitchen","bathroom","master","bedroom"].includes(t));
-
-  let bedIdx = { master: 0, bedroom: 0 };
-  for (const t of bedTypes) {
-    place(t, bedIdx[t]);
-    bedIdx[t]++;
-  }
-  let bathIdx = 0;
-  for (const t of bathTypes) {
-    place(t, bathIdx);
-    bathIdx++;
-  }
-  for (const t of otherTypes) place(t);
-  if (hasStaircase) place("staircase");
+    currentY += rowH;
+  });
 
   return placed;
 }
 
 // ─── Main engine ──────────────────────────────────────────────────────────────
-/**
- * Generate a floor plan.
- *
- * @param {object} params
- * @param {number} params.plotL      - Plot length (ft)
- * @param {number} params.plotW      - Plot width (ft)
- * @param {string} params.facing     - "N" | "E" | "S" | "W"
- * @param {number|string} params.floors  - number of floors (1-4)
- * @param {number|string} params.bhk     - BHK count (1-6)
- * @param {boolean} params.parking   - include parking?
- * @param {string} params.finish     - "budget"|"standard"|"premium"|"luxury"
- * @returns {object} { rooms, totals, vastuNotes, error? }
- */
 export function generateFloorPlan({ plotL, plotW, facing = "N", floors = 2, bhk = 3, parking = true, finish = "standard" }) {
   const pL = parseFloat(plotL) || 40;
   const pW = parseFloat(plotW) || 60;
@@ -167,17 +161,13 @@ export function generateFloorPlan({ plotL, plotW, facing = "N", floors = 2, bhk 
   const hasStaircase = fl > 1;
   const roomTypes = roomMixFromBHK(bk);
 
-  // Ground floor rooms (parking eats from ground plan)
   const groundRooms = sliceRooms(pL, pW, roomTypes, parking, hasStaircase);
 
-  // Built-up area = footprint × floors (minus staircase overlap)
   const footprint    = groundRooms.reduce((s, r) => s + r.area_sqft, 0);
-  const builtUpArea  = Math.round(footprint * fl * 0.9); // 10% structural loss on upper floors
-  const plotAreaNet  = Math.round((pL - WALL * 2) * (pW - WALL * 2));
-  const carpetArea   = Math.round(builtUpArea * 0.72); // 28% walls + common
+  const builtUpArea  = Math.round(footprint * fl * 0.9);
+  const carpetArea   = Math.round(builtUpArea * 0.72);
   const circulationL = Math.round((builtUpArea - carpetArea) / builtUpArea * 100);
 
-  // Vastu notes
   const vastuNotes = {};
   const facingNotes = {
     N: "North-facing plot: excellent for Vastu — main entrance on North, living room on North-East.",
@@ -222,37 +212,30 @@ const ZONE_COLORS = {
 
 const NORTH_ARROW_ROTATIONS = { N: 0, E: 90, S: 180, W: 270 };
 
-/**
- * Render floor plan as an SVG string.
- * @param {object} plan  - output of generateFloorPlan()
- * @param {number} svgW  - SVG viewport width in px (default 600)
- * @param {number} svgH  - SVG viewport height in px (default 480)
- * @returns {string} SVG markup
- */
 export function renderFloorPlanSVG(plan, svgW = 600, svgH = 480) {
   if (!plan || plan.error || !plan.rooms?.length) return "";
 
   const { rooms, totals } = plan;
-
-  // Scale factor: map plot ft to SVG px
-  const margin = 48;
-  const plotPxW = svgW - margin * 2;
-  const plotPxH = svgH - margin * 2 - 60; // bottom bar
-  const scaleX = plotPxW / parseFloat(totals.plot_dimensions);
-  // Parse dimensions
   const [pL, pW] = totals.plot_dimensions.split("×").map(s => parseFloat(s.trim()));
-  const sx = plotPxW / pL;
-  const sy = plotPxH / pW;
-  const scale = Math.min(sx, sy);
 
-  function ftToX(x) { return margin + x * scale; }
-  function ftToY(y) { return margin + y * scale; }
-  function ftToPx(v) { return v * scale; }
+  const margin = 44;
+  const availableW = svgW - margin * 2;
+  const availableH = svgH - margin * 2 - 40; // bottom text space
+
+  const scaleX = availableW / pL;
+  const scaleY = availableH / pW;
+  const scale  = Math.min(scaleX, scaleY);
 
   const plotPxActualW = pL * scale;
   const plotPxActualH = pW * scale;
 
-  // North arrow rotation
+  const offsetX = margin + (availableW - plotPxActualW) / 2;
+  const offsetY = margin + (availableH - plotPxActualH) / 2;
+
+  function ftToX(x) { return offsetX + x * scale; }
+  function ftToY(y) { return offsetY + y * scale; }
+  function ftToPx(v) { return v * scale; }
+
   const arrowRot = NORTH_ARROW_ROTATIONS[totals.facing] || 0;
 
   const roomSVG = rooms.map(r => {
@@ -263,72 +246,77 @@ export function renderFloorPlanSVG(plan, svgW = 600, svgH = 480) {
     const fill = ZONE_COLORS[r.zone] || "#F5F5F5";
     const cx = rx + rw / 2;
     const cy = ry + rh / 2;
-    const fontSize = Math.max(7, Math.min(11, rw / 8));
-    const dimW = `${r.w.toFixed(0)}'`;
-    const dimH = `${r.h.toFixed(0)}'`;
+
+    const fontSize = Math.max(7.5, Math.min(12, rw / 6, rh / 3.5));
+
+    let displayName = r.name;
+    if (rw < 75) {
+      displayName = displayName
+        .replace("Master Bedroom", "M. Bed")
+        .replace("Bedroom", "Bed")
+        .replace("Bathroom", "Bath")
+        .replace("Living Room", "Living")
+        .replace("Pooja Room", "Pooja")
+        .replace("Staircase", "Stairs");
+    }
+
+    const dimText = `${r.w.toFixed(0)}' × ${r.h.toFixed(0)}'`;
 
     return `
       <g class="room">
-        <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}"
+        <rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}"
               fill="${fill}" stroke="#B8860B" stroke-width="1.5" rx="2"/>
-        <text x="${cx}" y="${cy - fontSize * 0.6}" text-anchor="middle"
-              font-size="${fontSize}" font-family="Inter, sans-serif"
-              font-weight="600" fill="#1a1a1a">${r.name}</text>
-        <text x="${cx}" y="${cy + fontSize * 0.9}" text-anchor="middle"
-              font-size="${Math.max(6, fontSize - 1)}" font-family="Inter, sans-serif"
-              fill="#666">${dimW} × ${dimH}</text>
-        <text x="${cx}" y="${cy + fontSize * 2.1}" text-anchor="middle"
-              font-size="${Math.max(6, fontSize - 1.5)}" font-family="Inter, sans-serif"
+        <text x="${cx.toFixed(1)}" y="${(cy - fontSize * 0.6).toFixed(1)}" text-anchor="middle"
+              font-size="${fontSize.toFixed(1)}" font-family="Inter, sans-serif"
+              font-weight="600" fill="#1a1a1a">${displayName}</text>
+        <text x="${cx.toFixed(1)}" y="${(cy + fontSize * 0.8).toFixed(1)}" text-anchor="middle"
+              font-size="${Math.max(6.5, fontSize - 1.5).toFixed(1)}" font-family="Inter, sans-serif"
+              fill="#666">${dimText}</text>
+        <text x="${cx.toFixed(1)}" y="${(cy + fontSize * 2.0).toFixed(1)}" text-anchor="middle"
+              font-size="${Math.max(6, fontSize - 2).toFixed(1)}" font-family="Inter, sans-serif"
               fill="#B8860B">${r.area_sqft} sq ft</text>
       </g>`;
   }).join("\n");
 
-  // Totals bar
-  const barY = margin + plotPxActualH + 12;
+  const barY = offsetY + plotPxActualH + 16;
   const totalsText = `Built-up: ${totals.built_up_area.toLocaleString("en-IN")} sq ft  |  Carpet: ${totals.carpet_area.toLocaleString("en-IN")} sq ft  |  Circulation: ${totals.circulation_loss}%`;
 
-  // North arrow SVG at top-right
-  const arrowX = margin + plotPxActualW - 30;
-  const arrowY = margin + 20;
+  const arrowX = offsetX + plotPxActualW - 24;
+  const arrowY = offsetY + 18;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}"
      viewBox="0 0 ${svgW} ${svgH}" font-family="Inter, sans-serif">
   <!-- Plot boundary -->
-  <rect x="${margin}" y="${margin}" width="${plotPxActualW}" height="${plotPxActualH}"
+  <rect x="${offsetX.toFixed(1)}" y="${offsetY.toFixed(1)}" width="${plotPxActualW.toFixed(1)}" height="${plotPxActualH.toFixed(1)}"
         fill="#FAFAFA" stroke="#1a1a1a" stroke-width="2.5"/>
 
   <!-- Rooms -->
   ${roomSVG}
 
   <!-- Plot dimension labels -->
-  <text x="${margin + plotPxActualW / 2}" y="${margin - 8}"
-        text-anchor="middle" font-size="10" fill="#555">${pL}' (length)</text>
-  <text x="${margin - 6}" y="${margin + plotPxActualH / 2}"
-        text-anchor="middle" font-size="10" fill="#555" transform="rotate(-90,${margin - 6},${margin + plotPxActualH / 2})">${pW}' (width)</text>
+  <text x="${(offsetX + plotPxActualW / 2).toFixed(1)}" y="${(offsetY - 10).toFixed(1)}"
+        text-anchor="middle" font-size="10" font-weight="500" fill="#444">${pL}' (length)</text>
+  <text x="${(offsetX - 10).toFixed(1)}" y="${(offsetY + plotPxActualH / 2).toFixed(1)}"
+        text-anchor="middle" font-size="10" font-weight="500" fill="#444" transform="rotate(-90,${(offsetX - 10).toFixed(1)},${(offsetY + plotPxActualH / 2).toFixed(1)})">${pW}' (width)</text>
 
   <!-- North arrow -->
-  <g transform="translate(${arrowX},${arrowY}) rotate(${arrowRot})">
-    <polygon points="0,-14 -5,7 0,3 5,7" fill="#B8860B"/>
-    <polygon points="0,-14 5,7 0,3 -5,7" fill="#D4A84B" opacity="0.5"/>
-    <text x="0" y="20" text-anchor="middle" font-size="9" font-weight="bold" fill="#B8860B">N</text>
+  <g transform="translate(${arrowX.toFixed(1)},${arrowY.toFixed(1)}) rotate(${arrowRot})">
+    <polygon points="0,-12 -4,6 0,2 4,6" fill="#B8860B"/>
+    <polygon points="0,-12 4,6 0,2 -4,6" fill="#D4A84B" opacity="0.5"/>
+    <text x="0" y="16" text-anchor="middle" font-size="8" font-weight="bold" fill="#B8860B">N</text>
   </g>
 
   <!-- Totals bar -->
-  <text x="${margin}" y="${barY + 12}" font-size="9" fill="#888">${totalsText}</text>
+  <text x="${offsetX.toFixed(1)}" y="${barY.toFixed(1)}" font-size="9.5" font-weight="500" fill="#666">${totalsText}</text>
 
   <!-- Disclaimer label -->
-  <text x="${svgW / 2}" y="${svgH - 8}" text-anchor="middle"
+  <text x="${(svgW / 2).toFixed(1)}" y="${(svgH - 8).toFixed(1)}" text-anchor="middle"
         font-size="8" fill="#aaa">
     Indicative concept layout — not a construction drawing.
   </text>
 </svg>`;
 }
 
-/**
- * Format SVG for download as a file.
- * @param {string} svgStr - SVG markup
- * @returns {Blob}
- */
 export function svgToBlob(svgStr) {
   return new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
 }

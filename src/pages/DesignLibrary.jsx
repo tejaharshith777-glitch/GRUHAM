@@ -26,6 +26,7 @@ export default function DesignLibrary() {
     [o, l] = useState(null),
     [c, d] = useState("2d"),
     [h, p] = useState(0),
+    [toast, setToast] = useState(""),
     m = useQueryClient(),
     { data: y = [], isLoading: x } = useQuery({
       queryKey: ["savedDesigns"],
@@ -65,6 +66,11 @@ export default function DesignLibrary() {
       })[w] || w;
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[999] bg-[#1a1a1a] text-[#B8860B] px-6 py-3 rounded-full shadow-2xl text-sm font-semibold border border-[#B8860B]">
+          {toast}
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div
           initial={{
@@ -395,7 +401,8 @@ export default function DesignLibrary() {
                   onClick={() => {
                     const text = `GRUHAM Design: ${o.title}\nStyle: ${o.style || "N/A"}\nBudget: ${o.budget || "N/A"}`;
                     navigator.clipboard.writeText(text);
-                    alert("Summary copied to clipboard!");
+                    setToast("Summary copied to clipboard!");
+                    setTimeout(() => setToast(""), 3000);
                   }}
                 >
                   <FileText className="w-4 h-4 mr-2" />
@@ -407,7 +414,8 @@ export default function DesignLibrary() {
                   onClick={() => {
                     const url = window.location.origin + "?plan=" + o.id;
                     navigator.clipboard.writeText(url);
-                    alert("Shareable link copied: " + url);
+                    setToast("Shareable link copied!");
+                    setTimeout(() => setToast(""), 3000);
                   }}
                 >
                   <Share2 className="w-4 h-4 mr-2" />

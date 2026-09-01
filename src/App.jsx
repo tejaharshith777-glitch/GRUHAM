@@ -71,12 +71,9 @@ export default function App() {
             {Object.entries(PAGES).map(([name, Page]) => (
               <Route key={name} path={`/${name}`} element={<Page />} />
             ))}
-            {/* Legacy redirects for deleted pages */}
+            {/* Legacy redirects */}
             <Route path="/Services" element={<HowItWorks />} />
             <Route path="/Team" element={<About />} />
-            <Route path="/Sitemap" element={<Legal />} />
-            <Route path="/BookingNotifications" element={<Home />} />
-            <Route path="/AdminBookings" element={<Home />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

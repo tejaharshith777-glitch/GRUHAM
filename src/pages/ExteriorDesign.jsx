@@ -5,6 +5,7 @@ import {
   LoaderCircle,
   Rotate3d,
   Save,
+  Sparkles,
   Upload,
   WandSparkles,
   X,
@@ -113,6 +114,7 @@ export default function ExteriorDesign() {
     [_, S] = useState(false),
     [N, w] = useState("2d"),
     [C, E] = useState(0),
+    [toast, setToast] = useState(""),
     T = useRef(null),
     [P, B] = useState(null),
     U = async (F) => {
@@ -134,49 +136,46 @@ export default function ExteriorDesign() {
       if (n) {
         S(true);
         try {
-          const ee = exteriorZones.find((oe) => oe.id === e)?.name || "facade",
-            re = exteriorStyles.find((oe) => oe.id === n)?.name || n,
-            ae = `Professional 3D exterior architectural visualization of an Indian house ${ee}:
-Style: ${re}
-Floors: ${c}
-${o ? `Special requirements: ${o}` : ""}
-${P ? `CRITICAL: Apply ALL exterior modifications DIRECTLY on this uploaded image. Do NOT create a new image. Edit THIS SAME image - add ${re} architectural elements, enhance facade, modify windows/balconies, add textures and lighting improvements - all changes must be cumulative on the SAME base image to maintain visual coherence.` : ""}
+          const F = exteriorZones.find((re) => re.id === e)?.name || "Full Facade/Elevation",
+            Q = exteriorStyles.find((re) => re.id === n)?.name || n,
+            ee = `Professional 3D exterior architectural visualization of an Indian house ${F}:
+Style: ${Q}
+${o ? `Special details: ${o}` : ""}
+${P ? `CRITICAL: Apply modifications directly on this uploaded exterior image.` : ""}
 
-Create a photorealistic exterior render showing:
-- Beautiful ${re} style architecture
-- ${e === "facade" ? "Complete front elevation with all architectural details" : ""}
-- ${e === "balcony" ? "Detailed balcony design with railings, planters, seating" : ""}
-- ${e === "terrace" ? "Roof/terrace design with waterproofing, garden elements" : ""}
-- ${e === "entrance" ? "Grand entrance with door, porch, lighting" : ""}
-- Indian residential context
-- Natural lighting, golden hour
-- High quality architectural photography style, 4K`,
-            be = await base44.integrations.Core.GenerateImage({
-              prompt: ae,
-            });
-          j(be.url);
-        } catch (ee) {
-          console.error("Generation error:", ee);
+Create a high quality exterior render.`;
+          const re = await base44.integrations.Core.GenerateImage({
+            prompt: ee,
+          });
+          j(re.url);
+        } catch (F) {
+          console.error("Generation error:", F);
         }
         S(false);
       }
     },
     G = async () => {
       try {
-        (await base44.entities.SavedDesign.create({
-          title: `${exteriorZones.find((ee) => ee.id === e)?.name} - ${exteriorStyles.find((ee) => ee.id === n)?.name}`,
+        await base44.entities.SavedDesign.create({
+          title: `${exteriorZones.find((ee) => ee.id === e)?.name || "Exterior"} - ${exteriorStyles.find((ee) => ee.id === n)?.name || "Design"}`,
           design_type: "exterior",
           style: n,
           visualization_url: x,
           prompt: o,
-        }),
-          alert("Design saved!"));
+        });
+        setToast("Design saved to library!");
+        setTimeout(() => setToast(""), 3000);
       } catch (ee) {
         console.error("Save error:", ee);
       }
     };
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[999] bg-[#1a1a1a] text-[#B8860B] px-6 py-3 rounded-full shadow-2xl text-sm font-semibold border border-[#B8860B]">
+          {toast}
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <Disclaimer variant="generator" />
         <motion.div

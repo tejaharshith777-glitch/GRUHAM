@@ -140,7 +140,7 @@ const interiorShowcase = [
   },
 ];
 export default function InteriorDesign() {
-  const [e, t] = useState(""),
+  const [e, t] = useState("living"),
     [n, r] = useState(""),
     [o, l] = useState(""),
     [c, d] = useState(null),
@@ -150,6 +150,7 @@ export default function InteriorDesign() {
     [_, S] = useState(false),
     [N, w] = useState("2d"),
     [C, E] = useState(0),
+    [toast, setToast] = useState(""),
     T = useRef(null),
     P = async (A) => {
       const G = A.target.files[0];
@@ -167,12 +168,13 @@ export default function InteriorDesign() {
       }
     },
     B = async () => {
-      if (!(!e || !n)) {
-        S(true);
-        try {
-          const F = interiorRooms.find((ae) => ae.id === e)?.name || e,
-            Q = interiorStyles.find((ae) => ae.id === n)?.name || n,
-            ee = `Professional interior design 3D visualization of an Indian ${F}:
+      const roomVal = e || "living";
+      if (!n) return;
+      S(true);
+      try {
+        const F = interiorRooms.find((ae) => ae.id === roomVal)?.name || roomVal,
+          Q = interiorStyles.find((ae) => ae.id === n)?.name || n,
+          ee = `Professional interior design visualization of an Indian ${F}:
 Style: ${Q}
 ${o ? `Special requirements: ${o}` : ""}
 ${h ? `CRITICAL: Apply ALL interior modifications DIRECTLY on this uploaded image. Do NOT create or switch to a new image. Edit THIS SAME image cumulatively - add ${Q} furniture, change wall colors, add decor, modify lighting - all changes must be applied on the SAME base image to maintain consistency and visual coherence. Keep the room's exact dimensions, perspective, and architectural structure intact.` : ""}
@@ -184,35 +186,57 @@ Create a photorealistic interior render showing:
 - Realistic textures and shadows
 - Wide angle architectural photography style
 - High quality 4K render
-${e === "pooja" ? "- Traditional Indian pooja room elements, brass lamps, marble or wooden shelving" : ""}
-${e === "kitchen" ? "- Modular kitchen with Indian style stove setup, chimney, storage" : ""}`,
-            re = await base44.integrations.Core.GenerateImage({
-              prompt: ee,
-            });
-          j(re.url);
-        } catch (F) {
-          console.error("Generation error:", F);
-        }
-        S(false);
+${roomVal === "pooja" ? "- Traditional Indian pooja room elements, brass lamps, marble or wooden shelving" : ""}
+${roomVal === "kitchen" ? "- Modular kitchen with Indian style stove setup, chimney, storage" : ""}`,
+          re = await base44.integrations.Core.GenerateImage({
+            prompt: ee,
+          });
+        j(re.url);
+      } catch (F) {
+        console.error("Generation error:", F);
       }
+      S(false);
     },
     U = async () => {
       try {
-        (await base44.entities.SavedDesign.create({
-          title: `${interiorRooms.find((F) => F.id === e)?.name} - ${interiorStyles.find((F) => F.id === n)?.name}`,
+        await base44.entities.SavedDesign.create({
+          title: `${interiorRooms.find((F) => F.id === (e || "living"))?.name} - ${interiorStyles.find((F) => F.id === n)?.name || "Concept"}`,
           design_type: "interior",
-          room_type: e,
+          room_type: e || "living",
           style: n,
           visualization_url: x,
           prompt: o,
-        }),
-          alert("Design saved!"));
+        });
+        setToast("Design saved to library!");
+        setTimeout(() => setToast(""), 3000);
       } catch (F) {
         console.error("Save error:", F);
+      }
+    },
+    handleDownload = async () => {
+      if (!x) return;
+      try {
+        const res = await fetch(x);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `gruham-interior-${e || "design"}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch {
+        window.open(x, "_blank");
       }
     };
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[999] bg-[#1a1a1a] text-[#B8860B] px-6 py-3 rounded-full shadow-2xl text-sm font-semibold border border-[#B8860B]">
+          {toast}
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <Disclaimer variant="generator" />
         <motion.div
@@ -470,9 +494,13 @@ ${e === "kitchen" ? "- Modular kitchen with Indian style stove setup, chimney, s
                     <Save className="w-4 h-4 mr-2" />
                     Save
                   </Button>
-                  <Button className="flex-1 rounded-full bg-gray-300 text-gray-600 cursor-not-allowed" title="Concept images cannot be downloaded directly. Save to library instead.">
+                  <Button
+                    onClick={handleDownload}
+                    variant="outline"
+                    className="flex-1 rounded-full border-[#B8860B] text-[#B8860B] hover:bg-[#B8860B] hover:text-white"
+                  >
                     <Download className="w-4 h-4 mr-2" />
-                    Download (Disabled)
+                    Download
                   </Button>
                   <Button 
                     onClick={() => window.open(`https://wa.me/?text=Check out my interior design concept from Gruham!`, "_blank")}

@@ -165,16 +165,17 @@ export default function ContractorRegister() {
         portfolio: w.portfolio.filter((C, E) => E !== N),
       }));
     },
+    [errorMsg, setErrorMsg] = useState(""),
     S = async (N) => {
-      if ((N.preventDefault(), !e.name || !e.phone || !e.city || e.specializations.length === 0)) {
-        alert("Please fill all required fields");
+      N.preventDefault();
+      if (!e.name || !e.phone || !e.city || e.specializations.length === 0) {
+        setErrorMsg("Please fill all required fields (Name, Phone, City, and at least one Specialization)");
         return;
       }
+      setErrorMsg("");
       r(true);
-      // B4: Do NOT create a real Contractor record — the marketplace is not live.
-      // Just record interest locally and show the honest message.
       try {
-        await new Promise((res) => setTimeout(res, 800)); // simulate async
+        await new Promise((res) => setTimeout(res, 800));
         l(true);
       } catch (w) {
         console.error("Submit error:", w);
@@ -253,6 +254,11 @@ export default function ContractorRegister() {
           onSubmit={S}
           className="space-y-6"
         >
+          {errorMsg && (
+            <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm font-medium">
+              {errorMsg}
+            </div>
+          )}
           <div className="bg-white rounded-3xl p-6 shadow-lg">
             <h3 className="font-serif text-lg font-bold text-[#1a1a1a] mb-4 flex items-center gap-2">
               <Camera className="w-5 h-5 text-[#B8860B]" />

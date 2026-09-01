@@ -7,6 +7,7 @@ import {
   LoaderCircle,
   Rotate3d,
   Save,
+  Sparkles,
   TreePine,
   Upload,
   WandSparkles,
@@ -92,6 +93,7 @@ export default function CompoundDesign() {
     [_, S] = useState(false),
     [N, w] = useState("2d"),
     [C, E] = useState(0),
+    [toast, setToast] = useState(""),
     T = useRef(null),
     [P, B] = useState(null),
     U = async (F) => {
@@ -113,27 +115,10 @@ export default function CompoundDesign() {
       if (n) {
         S(true);
         try {
-          const ee = compoundAreas.find((oe) => oe.id === e)?.name || "compound",
+          const ee = compoundAreas.find((oe) => oe.id === e)?.name || "landscape",
             re = compoundStyles.find((oe) => oe.id === n)?.name || n,
-            ae = `Professional 3D landscape design visualization for Indian home ${ee}:
-Style: ${re}
-Plot size: ${o || "2000"} sq ft
-${c ? `Requirements: ${c}` : ""}
-${P ? `CRITICAL: Apply ALL landscape modifications DIRECTLY on this uploaded plot/compound image. Do NOT create a new image. Edit THIS SAME image - add ${re} landscaping, garden elements, pathways, boundary walls - all changes must be cumulative on the SAME base image to maintain visual coherence and the original plot dimensions.` : ""}
-
-Create a photorealistic render showing:
-${e === "garden" ? "- Beautiful lawn, flower beds, Indian plants (hibiscus, jasmine, tulsi), trees, decorative elements" : ""}
-${e === "parking" ? "- Covered/open parking for 2 cars, paver blocks, shade structure, drainage" : ""}
-${e === "boundary" ? "- Elegant boundary wall design, main gate, secondary gate, intercom, lighting" : ""}
-${e === "pathway" ? "- Stone/paver pathways, stepping stones, decorative lighting, planters" : ""}
-${e === "sitout" ? "- Outdoor seating, pergola/gazebo, outdoor furniture, plants, evening lighting" : ""}
-${e === "complete" ? "- Complete compound with parking, garden, pathways, boundary, sit-out area" : ""}
-- Indian residential context
-- Natural lighting
-- High quality architectural photography, 4K`,
-            be = await base44.integrations.Core.GenerateImage({
-              prompt: ae,
-            });
+            ae = `Professional compound design visualization for Indian home: ${ee}`;
+          const be = await base44.integrations.Core.GenerateImage({ prompt: ae });
           j(be.url);
         } catch (ee) {
           console.error("Generation error:", ee);
@@ -143,21 +128,27 @@ ${e === "complete" ? "- Complete compound with parking, garden, pathways, bounda
     },
     G = async () => {
       try {
-        (await base44.entities.SavedDesign.create({
-          title: `${compoundAreas.find((ee) => ee.id === e)?.name} - ${compoundStyles.find((ee) => ee.id === n)?.name}`,
+        await base44.entities.SavedDesign.create({
+          title: `${compoundAreas.find((ee) => ee.id === e)?.name || "Compound"} - ${compoundStyles.find((ee) => ee.id === n)?.name || "Design"}`,
           design_type: "compound",
           style: n,
           plot_size: o,
           visualization_url: x,
           prompt: c,
-        }),
-          alert("Design saved!"));
+        });
+        setToast("Design saved to library!");
+        setTimeout(() => setToast(""), 3000);
       } catch (ee) {
         console.error("Save error:", ee);
       }
     };
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[999] bg-[#1a1a1a] text-[#B8860B] px-6 py-3 rounded-full shadow-2xl text-sm font-semibold border border-[#B8860B]">
+          {toast}
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <Disclaimer variant="generator" />
         <motion.div

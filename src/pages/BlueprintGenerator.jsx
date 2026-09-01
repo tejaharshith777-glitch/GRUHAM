@@ -166,15 +166,15 @@ High quality architectural rendering, professional photography style`,
           Ee = await base44.integrations.Core.GenerateImage({
             prompt: je,
           });
-        G(Ee.url);
+        A(Ee.url);
       } catch (Ne) {
         console.error("Generation error:", Ne);
       }
-      (Q(false), re(""));
+      (F(false), ee(""));
     },
     he = async () => {
       try {
-        (await base44.entities.SavedDesign.create({
+        await base44.entities.SavedDesign.create({
           title: `${x} ${houseStyles.find((ve) => ve.id === m)?.name || "Modern"} House`,
           design_type: "full_house",
           style: m,
@@ -185,14 +185,20 @@ High quality architectural rendering, professional photography style`,
           blueprint_url: B,
           visualization_url: A,
           prompt: h,
-        }),
-          alert("Design saved to your library!"));
+        });
+        setToast("Design saved to your library!");
+        setTimeout(() => setToast(""), 3000);
       } catch (ve) {
         console.error("Save error:", ve);
       }
     };
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[999] bg-[#1a1a1a] text-[#B8860B] px-6 py-3 rounded-full shadow-2xl text-sm font-semibold border border-[#B8860B]">
+          {toast}
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <Disclaimer variant="generator" />
         <motion.div
