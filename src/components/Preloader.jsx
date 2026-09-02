@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 
-export default function Preloader({ onComplete, duration = 2200 }) {
+export default function Preloader({ onComplete, duration = 600 }) {
   const [progress, setProgress] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const onCompleteRef = useRef(onComplete);
@@ -10,13 +10,17 @@ export default function Preloader({ onComplete, duration = 2200 }) {
   }, [onComplete]);
 
   useEffect(() => {
+    if (sessionStorage.getItem("gruham_preloaded")) {
+      if (onCompleteRef.current) onCompleteRef.current();
+      return;
+    }
+
     const startTime = performance.now();
 
     const updateProgress = (currentTime) => {
       const elapsed = currentTime - startTime;
       const rawProgress = Math.min((elapsed / duration) * 100, 100);
       
-      // Smooth cubic easing
       const easedProgress = Math.floor(rawProgress);
       setProgress(easedProgress);
 
@@ -25,10 +29,11 @@ export default function Preloader({ onComplete, duration = 2200 }) {
       } else {
         setTimeout(() => {
           setIsFadingOut(true);
+          sessionStorage.setItem("gruham_preloaded", "true");
           setTimeout(() => {
             if (onCompleteRef.current) onCompleteRef.current();
-          }, 700); // match transition duration
-        }, 200);
+          }, 300);
+        }, 100);
       }
     };
 
@@ -38,7 +43,7 @@ export default function Preloader({ onComplete, duration = 2200 }) {
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] bg-[#0A0A0C] text-white flex flex-col items-center justify-between py-10 px-4 select-none overflow-hidden transition-all duration-700 ease-in-out ${
+      className={`fixed inset-0 z-[99999] bg-[#0A0A0C] text-white flex flex-col items-center justify-between py-10 px-4 select-none overflow-hidden transition-all duration-300 ease-in-out ${
         isFadingOut ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
       aria-label="Loading GRUHAM"

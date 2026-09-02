@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   ArrowRight,
+  Bath,
+  BedDouble,
   Box,
   ChevronLeft,
   ChevronRight,
@@ -8,16 +10,18 @@ import {
   FileText,
   House,
   IndianRupee,
+  Lamp,
   Quote,
   Sofa,
   Sparkles,
   Star,
   TreePine,
   Users,
+  Utensils,
   WandSparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "../lib/utils";
 import { computeBOQ, CITY_NAMES, inrShort } from "@/lib/boq";
 import ErrorBoundary from "@/components/ErrorBoundary";
