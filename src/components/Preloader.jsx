@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 
-export default function Preloader({ onComplete, duration = 600 }) {
+export default function Preloader({ onComplete, duration = 1000 }) {
   const [progress, setProgress] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const onCompleteRef = useRef(onComplete);
@@ -10,11 +10,6 @@ export default function Preloader({ onComplete, duration = 600 }) {
   }, [onComplete]);
 
   useEffect(() => {
-    if (sessionStorage.getItem("gruham_preloaded")) {
-      if (onCompleteRef.current) onCompleteRef.current();
-      return;
-    }
-
     const startTime = performance.now();
 
     const updateProgress = (currentTime) => {
@@ -29,11 +24,10 @@ export default function Preloader({ onComplete, duration = 600 }) {
       } else {
         setTimeout(() => {
           setIsFadingOut(true);
-          sessionStorage.setItem("gruham_preloaded", "true");
           setTimeout(() => {
             if (onCompleteRef.current) onCompleteRef.current();
-          }, 300);
-        }, 100);
+          }, 400);
+        }, 150);
       }
     };
 
