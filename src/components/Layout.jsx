@@ -41,8 +41,9 @@ export default function Layout({ children, currentPageName }) {
     { name: "Blueprint", url: createPageUrl("BlueprintGenerator") },
     { name: "Interior", url: createPageUrl("InteriorDesign") },
     { name: "Exterior", url: createPageUrl("ExteriorDesign") },
-    { name: "Compound", url: createPageUrl("CompoundDesign") },
-    { name: "Cost Estimator", url: createPageUrl("Materials") },
+    { name: "House Catalog", url: createPageUrl("CompoundDesign") },
+    { name: "Materials", url: createPageUrl("Materials") },
+    { name: "Pricing & BOQ", url: createPageUrl("Pricing") },
     { name: "Contractors", url: createPageUrl("Contractors") },
     { name: "My Designs", url: createPageUrl("DesignLibrary") },
   ];
