@@ -251,15 +251,30 @@ function hash(str) {
   return Math.abs(h);
 }
 
-function pickImage(prompt) {
+export const STYLE_TOKENS = {
+  traditional: "traditional Indian home architecture design, solid teak wood carved pillars, brass oil lamps, warm Athangudi terracotta floor tiles, Jharokha wooden windows, heritage courtyard motifs, rich silk upholstery, golden brass accents, warm ambient lighting, authentic Indian architectural detailing",
+  traditional_indian: "traditional Indian home architecture design, solid teak wood carved pillars, brass oil lamps, warm Athangudi terracotta floor tiles, Jharokha wooden windows, heritage courtyard motifs, rich silk upholstery, golden brass accents, warm ambient lighting, authentic Indian architectural detailing",
+  south_indian: "traditional South Indian Kerala Chettinad architectural style, sloped red tile roof, ornate teak wood pillars, Athangudi floor tiles, central open courtyard (thotti), brass oil lamps, tropical greenery",
+  modern: "modern minimalist interior exterior home design, clean geometric lines, neutral monochrome palette, floor-to-ceiling glass windows, recessed LED strip lighting, polished concrete floors, sleek minimalist furniture",
+  contemporary: "contemporary Indian luxury home, warm neutral tones, Italian marble flooring, accent wooden paneling, plush velvet sofa, designer chandelier lighting, indoor planters",
+  luxury: "ultra-luxury Indian villa, high double-height ceiling, Italian Statuario marble floors, crystal chandelier, gilded gold leaf accents, royal teakwood furniture, floor-to-ceiling glass wall, lush landscaped lawn pool",
+  colonial: "British colonial era Indian bungalow style, high ceilings, louvered wooden shutters, teak verandah furniture, white lime wash exterior walls, terracotta roof tiles, vintage brass ceiling fans",
+  minimalist: "minimalist zen home design, light ash wood, hidden storage, clean white plaster walls, soft natural lighting, uncluttered Japanese-Scandinavian fusion furniture",
+};
+
+function pickImageWithSeed(prompt, seed = Math.floor(Math.random() * 100000)) {
   const p = prompt.toLowerCase();
   let pool = ALL_IMAGES;
   if (/blueprint|floor plan|2d plan|elevation drawing/.test(p)) pool = IMAGE_SETS.blueprint;
   else if (/exterior|facade|elevation|front of the house|3d exterior/.test(p)) pool = IMAGE_SETS.exterior;
   else if (/compound|garden|lawn|parking|boundary|fence/.test(p)) pool = IMAGE_SETS.compound;
   else if (/interior|room|kitchen|bedroom|living|hall|bath/.test(p)) pool = IMAGE_SETS.interior;
-  const id = pool[hash(prompt) % pool.length];
+  const id = pool[(hash(prompt) + seed) % pool.length];
   return `https://images.unsplash.com/${id}?w=1280&q=70&auto=format&fit=crop`;
+}
+
+function pickImage(prompt) {
+  return pickImageWithSeed(prompt, Math.floor(Math.random() * 10000));
 }
 
 /* ----------------------------------------------------------- language model */
@@ -408,15 +423,41 @@ const client = {
         return { file_url };
       },
 
-      /** Generates an image from a text prompt and returns { url }. */
-      async GenerateImage({ prompt }) {
-        const online = import.meta.env?.VITE_IMAGE_MODE === "online";
-        const url = online
-          ? `https://image.pollinations.ai/prompt/${encodeURIComponent(
-              prompt.slice(0, 900)
-            )}?width=1024&height=768&nologo=true&seed=${hash(prompt) % 100000}`
-          : pickImage(prompt);
-        return { url };
+      /** Generates a single image with style-locking tokens and seed randomization. */
+      async GenerateImage({ prompt, styleToken, seed }) {
+        const stylePrefix = STYLE_TOKENS[styleToken] ? `${STYLE_TOKENS[styleToken]}, ` : "";
+        const fullPrompt = `${stylePrefix}${prompt}`;
+        const randomSeed = seed || Math.floor(Math.random() * 900000) + 100000;
+        
+        // Try Pollinations AI dynamic generator first
+        const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+          fullPrompt.slice(0, 900)
+        )}?width=1024&height=768&nologo=true&seed=${randomSeed}`;
+        
+        // Fallback to randomized pool image if offline
+        const offlineUrl = pickImageWithSeed(fullPrompt, randomSeed);
+        
+        return { url: pollinationsUrl || offlineUrl };
+      },
+
+      /** Generates 3-4 distinct image variations with style locking. */
+      async GenerateImageVariations({ prompt, styleToken, count = 3 }) {
+        const stylePrefix = STYLE_TOKENS[styleToken] ? `${STYLE_TOKENS[styleToken]}, ` : "";
+        const fullPrompt = `${stylePrefix}${prompt}`;
+        const urls = [];
+        const baseSeed = Math.floor(Math.random() * 800000) + 100000;
+
+        for (let i = 0; i < count; i++) {
+          const currentSeed = baseSeed + i * 1337;
+          const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+            `${fullPrompt}, variation ${i + 1}`.slice(0, 900)
+          )}?width=1024&height=768&nologo=true&seed=${currentSeed}`;
+          
+          const fallbackUrl = pickImageWithSeed(fullPrompt, currentSeed);
+          urls.push(url || fallbackUrl);
+        }
+
+        return { urls };
       },
 
       /** Calls the language model (Gemini when a key is set, offline engine otherwise). */

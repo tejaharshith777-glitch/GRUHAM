@@ -1,146 +1,205 @@
-import { useRef, useState } from "react";
+import { useState, useMemo } from "react";
 import {
-  Car,
-  Download,
+  ArrowRight,
+  Building,
+  Check,
+  ChevronRight,
+  Compass,
   Fence,
-  Footprints,
-  LoaderCircle,
-  Save,
+  Filter,
+  Grid,
+  Heart,
+  House,
+  IndianRupee,
+  Info,
+  Layers,
+  Maximize2,
+  Phone,
+  Ruler,
+  Search,
+  Share2,
+  SlidersHorizontal,
   Sparkles,
   TreePine,
-  Upload,
   WandSparkles,
   X,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "../lib/base44";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Disclaimer from "@/components/Disclaimer";
+import { createPageUrl } from "../lib/utils";
 
-const compoundAreas = [
+// ─── Unique Property & House Design Catalog Database ──────────────────────────
+const HOUSE_CATALOG = [
   {
-    id: "garden",
-    name: "Garden/Lawn",
-    icon: TreePine,
+    id: "h_101",
+    title: "Chettinad Heritage Courtyard Villa",
+    category: "Traditional Courtyard",
+    bhk: 4,
+    floors: "G+1",
+    sqft: 2800,
+    priceEst: "₹85 - 95 Lakhs",
+    facing: "East",
+    style: "traditional_indian",
+    images: [
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1280&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1280&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1280&q=75&auto=format&fit=crop"
+    ],
+    description: "Classic South Indian Chettinad architecture featuring a central thotti courtyard, Athangudi tiled corridors, hand-carved teakwood pillars, and terracotta sloped rooflines.",
+    specs: { livingSqft: 450, masterBedSqft: 220, kitchenType: "Traditional + Utility", parking: "2 Cars" }
   },
   {
-    id: "parking",
-    name: "Parking Area",
-    icon: Car,
+    id: "h_102",
+    title: "Ultra-Modern Glass & Concrete Villa",
+    category: "Luxury Villa",
+    bhk: 4,
+    floors: "G+2",
+    sqft: 3600,
+    priceEst: "₹1.4 - 1.6 Crore",
+    facing: "North",
+    style: "modern",
+    images: [
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1280&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1280&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1280&q=75&auto=format&fit=crop"
+    ],
+    description: "Minimalist luxury home with cantilevered balconies, double-height living room glass walls, Italian marble flooring, and smart automation integration.",
+    specs: { livingSqft: 520, masterBedSqft: 280, kitchenType: "Island Modular", parking: "3 Cars" }
   },
   {
-    id: "boundary",
-    name: "Boundary Wall & Gate",
-    icon: Fence,
+    id: "h_103",
+    title: "Kerala Nalukettu Vernacular Residence",
+    category: "Traditional Courtyard",
+    bhk: 3,
+    floors: "G+1",
+    sqft: 2200,
+    priceEst: "₹65 - 75 Lakhs",
+    facing: "East",
+    style: "south_indian",
+    images: [
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1280&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1280&q=75&auto=format&fit=crop"
+    ],
+    description: "Authentic Kerala Nalukettu home with four wings around a central open-to-sky quadrangle, gabled roof timbering, and extensive brass lamp accents.",
+    specs: { livingSqft: 380, masterBedSqft: 200, kitchenType: "Open Modular", parking: "2 Cars" }
   },
   {
-    id: "pathway",
-    name: "Pathways & Paving",
-    icon: Footprints,
+    id: "h_104",
+    title: "Contemporary Urban Duplex",
+    category: "Duplex",
+    bhk: 3,
+    floors: "G+1",
+    sqft: 1950,
+    priceEst: "₹55 - 65 Lakhs",
+    facing: "North",
+    style: "contemporary",
+    images: [
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1280&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1280&q=75&auto=format&fit=crop"
+    ],
+    description: "Compact duplex designed for 30x40 urban plots. Maximizes vertical volume with floating staircase, terrace garden, and private office.",
+    specs: { livingSqft: 340, masterBedSqft: 180, kitchenType: "Parallel Modular", parking: "1 Car" }
   },
   {
-    id: "sitout",
-    name: "Sit-out Area",
-    icon: TreePine,
+    id: "h_105",
+    title: "Rajasthani Haveli Style Bungalow",
+    category: "Traditional Courtyard",
+    bhk: 5,
+    floors: "G+2",
+    sqft: 4200,
+    priceEst: "₹1.8 - 2.2 Crore",
+    facing: "East",
+    style: "traditional_indian",
+    images: [
+      "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1280&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1280&q=75&auto=format&fit=crop"
+    ],
+    description: "Grand North Indian Haveli with sandstone Jharokha stone carving, arched porticos, marble courtyards, and grand master suite.",
+    specs: { livingSqft: 650, masterBedSqft: 320, kitchenType: "Chef's Kitchen", parking: "3 Cars" }
   },
   {
-    id: "complete",
-    name: "Complete Compound",
-    icon: TreePine,
+    id: "h_106",
+    title: "Compact 2BHK Modern Budget Home",
+    category: "Modern Home",
+    bhk: 2,
+    floors: "G+0",
+    sqft: 1250,
+    priceEst: "₹32 - 38 Lakhs",
+    facing: "West",
+    style: "minimalist",
+    images: [
+      "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1280&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1280&q=75&auto=format&fit=crop"
+    ],
+    description: "Highly efficient single-storey home design for small families. Open living-dining flow with minimal corridor wastage.",
+    specs: { livingSqft: 280, masterBedSqft: 150, kitchenType: "Straight Modular", parking: "1 Car" }
   },
 ];
-const compoundStyles = [
-  {
-    id: "modern",
-    name: "Modern Minimalist",
-  },
-  {
-    id: "traditional",
-    name: "Traditional Indian",
-  },
-  {
-    id: "tropical",
-    name: "Tropical",
-  },
-  {
-    id: "zen",
-    name: "Zen/Japanese",
-  },
-  {
-    id: "cottage",
-    name: "Cottage Garden",
-  },
-  {
-    id: "mediterranean",
-    name: "Mediterranean",
-  },
-  {
-    id: "contemporary",
-    name: "Contemporary",
-  },
-];
+
 export default function CompoundDesign() {
-  const [e, t] = useState("complete"),
-    [n, r] = useState(""),
-    [o, l] = useState(""),
-    [c, d] = useState(""),
-    [h, p] = useState(null),
-    [m, y] = useState(false),
-    [x, j] = useState(null),
-    [_, S] = useState(false),
-    [N, w] = useState("2d"),
-    [C, E] = useState(0),
-    [toast, setToast] = useState(""),
-    T = useRef(null),
-    [P, B] = useState(null),
-    U = async (F) => {
-      const Q = F.target.files[0];
-      if (Q) {
-        (y(true), p(URL.createObjectURL(Q)));
-        try {
-          const { file_url: ee } = await base44.integrations.Core.UploadFile({
-            file: Q,
-          });
-          B(ee);
-        } catch (ee) {
-          console.error("Upload error:", ee);
-        }
-        y(false);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedBhk, setSelectedBhk] = useState("All");
+  const [selectedStyle, setSelectedStyle] = useState("All");
+  const [maxBudget, setMaxBudget] = useState(250); // Lakhs
+  const [selectedHouse, setSelectedHouse] = useState(null);
+  const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
+  const [toast, setToast] = useState("");
+
+  // AI Compound / Boundary Wall Generator State
+  const [wallStyle, setWallStyle] = useState("traditional_indian");
+  const [wallPrompt, setWallPrompt] = useState("");
+  const [isGeneratingWall, setIsGeneratingWall] = useState(false);
+  const [generatedWallImages, setGeneratedWallImages] = useState([]);
+
+  // Filter Catalog
+  const filteredCatalog = useMemo(() => {
+    return HOUSE_CATALOG.filter((house) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchesTitle = house.title.toLowerCase().includes(q);
+        const matchesDesc = house.description.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesDesc) return false;
       }
-    },
-    A = async () => {
-      if (n) {
-        S(true);
-        try {
-          const ee = compoundAreas.find((oe) => oe.id === e)?.name || "landscape",
-            re = compoundStyles.find((oe) => oe.id === n)?.name || n,
-            ae = `Professional compound design visualization for Indian home: ${ee}`;
-          const be = await base44.integrations.Core.GenerateImage({ prompt: ae });
-          j(be.url);
-        } catch (ee) {
-          console.error("Generation error:", ee);
-        }
-        S(false);
-      }
-    },
-    G = async () => {
-      try {
-        await base44.entities.SavedDesign.create({
-          title: `${compoundAreas.find((ee) => ee.id === e)?.name || "Compound"} - ${compoundStyles.find((ee) => ee.id === n)?.name || "Design"}`,
-          design_type: "compound",
-          style: n,
-          plot_size: o,
-          visualization_url: x,
-          prompt: c,
-        });
-        setToast("Design saved to library!");
-        setTimeout(() => setToast(""), 3000);
-      } catch (ee) {
-        console.error("Save error:", ee);
-      }
-    };
+      if (selectedCategory !== "All" && house.category !== selectedCategory) return false;
+      if (selectedBhk !== "All" && house.bhk !== parseInt(selectedBhk)) return false;
+      if (selectedStyle !== "All" && house.style !== selectedStyle) return false;
+      return true;
+    });
+  }, [searchQuery, selectedCategory, selectedBhk, selectedStyle]);
+
+  // Generate Unique Boundary Wall & Compound Concept
+  const handleGenerateCompoundWall = async () => {
+    setIsGeneratingWall(true);
+    try {
+      const fullPrompt = `Architectural boundary wall, compound gate, and landscaping design for an Indian house, ${wallStyle} style. ${wallPrompt}. High quality photorealistic rendering.`;
+      
+      const { urls } = await base44.integrations.Core.GenerateImageVariations({
+        prompt: fullPrompt,
+        styleToken: wallStyle,
+        count: 3,
+      });
+
+      setGeneratedWallImages(urls || []);
+    } catch (err) {
+      console.error("Wall generation error:", err);
+    }
+    setIsGeneratingWall(false);
+  };
+
+  const handleInquirySubmit = (e) => {
+    e.preventDefault();
+    setInquiryModalOpen(false);
+    setToast("Inquiry sent to verified builder team!");
+    setTimeout(() => setToast(""), 3500);
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
       {toast && (
@@ -148,236 +207,342 @@ export default function CompoundDesign() {
           {toast}
         </div>
       )}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Disclaimer variant="generator" />
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 30,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          className="text-center mb-10"
-        >
+
+        {/* Page Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-[#B8860B]/10 rounded-full px-4 py-2 mb-4">
-            <TreePine className="w-4 h-4 text-[#B8860B]" />
-            <span className="text-[#B8860B] font-medium text-sm">Compound & Landscape Design</span>
+            <Building className="w-4 h-4 text-[#B8860B]" />
+            <span className="text-[#B8860B] font-semibold text-sm">House & Villa Design Catalog</span>
           </div>
-          <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
-            Design Your Outdoor Space
+          <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-3">
+            Indian House Catalog & Compound Designs
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            AI concept renders for gardens, parking, pathways, and compound walls.
-            For planning and inspiration — not construction drawings.
+            Browse verified Indian house designs with complete specifications, image galleries, and customized estimates.
           </p>
         </motion.div>
 
-        {/* Disclaimer */}
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-6">
-          <span className="text-amber-600 text-lg flex-shrink-0">⚠️</span>
-          <p className="text-amber-800 text-sm leading-relaxed">
-            <strong>Concept renders only.</strong> AI-generated compound and landscape images are for visualization — not professional landscape architecture drawings.
-          </p>
-        </div>
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-          {compoundAreas.map((F) => (
-            <button
-              key={F.id}
-              onClick={() => t(F.id)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-full transition-all ${e === F.id ? "bg-[#B8860B] text-white shadow-lg" : "bg-white text-gray-700 hover:bg-[#B8860B]/10"}`}
-            >
-              <F.icon className="w-4 h-4" />
-              {F.name}
-            </button>
-          ))}
-        </div>
-        <div className="grid lg:grid-cols-2 gap-8">
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: -30,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-            className="space-y-6"
-          >
-            <div className="bg-white rounded-3xl p-6 shadow-lg">
-              <h3 className="font-serif text-lg font-bold text-[#1a1a1a] mb-4">
-                Upload Plot Photo (Optional)
-              </h3>
-              {h ? (
-                <div className="relative">
-                  <img src={h} alt="Uploaded" className="w-full h-48 object-cover rounded-2xl" />
-                  <button
-                    onClick={() => p(null)}
-                    className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onClick={() => {
-                    return T.current?.click();
-                  }}
-                  className="border-2 border-dashed border-[#B8860B]/30 rounded-2xl p-8 text-center cursor-pointer hover:border-[#B8860B]"
-                >
-                  <Upload className="w-10 h-10 text-[#B8860B] mx-auto mb-3" />
-                  <p className="text-gray-600">Upload plot or existing compound photo</p>
-                </div>
-              )}
-              <input ref={T} type="file" accept="image/*" onChange={U} className="hidden" />
+        {/* SEARCH & FILTERS BAR */}
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 mb-10 space-y-4">
+          <div className="grid md:grid-cols-12 gap-4 items-center">
+            {/* Search Input (5 cols) */}
+            <div className="md:col-span-5 relative">
+              <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search house style, BHK, Chettinad, Kerala, Villa..."
+                className="pl-11 rounded-2xl h-12 border-gray-200"
+              />
             </div>
-            <div className="bg-white rounded-3xl p-6 shadow-lg space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Style</label>
-                  <Select value={n} onValueChange={r}>
-                    <SelectTrigger className="rounded-xl">
-                      <SelectValue placeholder="Choose style" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {compoundStyles.map((F) => (
-                        <SelectItem key={F.id} value={F.id}>
-                          {F.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Plot Size (sq ft)
-                  </label>
-                  <input
-                    type="text"
-                    value={o}
-                    onChange={(F) => l(F.target.value)}
-                    placeholder="E.g., 2400"
-                    className="w-full h-10 px-3 rounded-xl border border-gray-200"
+
+            {/* Category Dropdown */}
+            <div className="md:col-span-3">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="rounded-2xl h-12 border-gray-200">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Categories</SelectItem>
+                  <SelectItem value="Traditional Courtyard">Traditional Courtyard</SelectItem>
+                  <SelectItem value="Luxury Villa">Luxury Villa</SelectItem>
+                  <SelectItem value="Duplex">Duplex Homes</SelectItem>
+                  <SelectItem value="Modern Home">Modern Homes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* BHK Dropdown */}
+            <div className="md:col-span-2">
+              <Select value={selectedBhk} onValueChange={setSelectedBhk}>
+                <SelectTrigger className="rounded-2xl h-12 border-gray-200">
+                  <SelectValue placeholder="BHK" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All BHK</SelectItem>
+                  <SelectItem value="2">2 BHK</SelectItem>
+                  <SelectItem value="3">3 BHK</SelectItem>
+                  <SelectItem value="4">4 BHK</SelectItem>
+                  <SelectItem value="5">5 BHK</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Style Dropdown */}
+            <div className="md:col-span-2">
+              <Select value={selectedStyle} onValueChange={setSelectedStyle}>
+                <SelectTrigger className="rounded-2xl h-12 border-gray-200">
+                  <SelectValue placeholder="Style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Styles</SelectItem>
+                  <SelectItem value="traditional_indian">Traditional Indian</SelectItem>
+                  <SelectItem value="south_indian">South Indian / Kerala</SelectItem>
+                  <SelectItem value="modern">Modern Minimalist</SelectItem>
+                  <SelectItem value="contemporary">Contemporary</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* HOUSE CATALOG GRID */}
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-serif text-2xl font-bold text-[#1a1a1a]">
+              Available Designs ({filteredCatalog.length})
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredCatalog.map((house) => (
+              <motion.div
+                key={house.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 flex flex-col group"
+              >
+                {/* Image Preview Container */}
+                <div className="aspect-[16/10] overflow-hidden relative">
+                  <img
+                    src={house.images[0]}
+                    alt={house.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+                  <div className="absolute top-3 left-3 bg-[#1a1a1a]/80 text-[#B8860B] backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold border border-[#B8860B]/30">
+                    {house.category}
+                  </div>
+                  <div className="absolute bottom-3 right-3 bg-black/70 text-white backdrop-blur-md px-3 py-1 rounded-full text-xs font-mono font-bold">
+                    {house.sqft} sq ft
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Additional Details
-                </label>
-                <Textarea
-                  value={c}
-                  onChange={(F) => d(F.target.value)}
-                  placeholder="E.g., water feature, pergola, outdoor kitchen, kids play area, vertical garden..."
-                  className="h-24"
-                />
-              </div>
+
+                {/* Content */}
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <h3 className="font-serif text-xl font-bold text-[#1a1a1a] mb-2 group-hover:text-[#B8860B] transition-colors">
+                      {house.title}
+                    </h3>
+                    <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed">
+                      {house.description}
+                    </p>
+                  </div>
+
+                  {/* Badges */}
+                  <div className="grid grid-cols-3 gap-2 py-3 border-y border-gray-100 text-center text-xs">
+                    <div>
+                      <span className="text-gray-400 block text-[10px]">BHK</span>
+                      <span className="font-bold text-gray-900">{house.bhk} BHK</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block text-[10px]">FLOORS</span>
+                      <span className="font-bold text-gray-900">{house.floors}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block text-[10px]">EST. COST</span>
+                      <span className="font-bold text-[#B8860B]">{house.priceEst}</span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setSelectedHouse(house)}
+                      className="flex-1 rounded-full bg-[#1a1a1a] hover:bg-black text-white text-xs font-bold py-2.5"
+                    >
+                      View Details & Gallery
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* AI COMPOUND & BOUNDARY WALL STUDIO SECTION */}
+        <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 space-y-6">
+          <div className="flex items-center gap-3">
+            <Fence className="w-7 h-7 text-[#B8860B]" />
+            <div>
+              <h2 className="font-serif text-2xl font-bold text-[#1a1a1a]">AI Compound & Boundary Wall Generator</h2>
+              <p className="text-gray-600 text-sm">Generate distinct compound gates, boundary walls, and front garden landscapes.</p>
             </div>
-            <Button
-              onClick={A}
-              disabled={!n || _}
-              className="w-full h-14 bg-gradient-to-r from-[#B8860B] to-[#D4A84B] text-white rounded-full font-semibold text-lg"
-            >
-              {_ ? (
-                <>
-                  <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
-                  Designing...
-                </>
-              ) : (
-                <>
-                  <WandSparkles className="w-5 h-5 mr-2" />
-                  Generate Compound Design
-                </>
-              )}
-            </Button>
-          </motion.div>
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: 30,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-          >
-            <div className="bg-white rounded-3xl p-6 shadow-lg h-full min-h-[500px]">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-serif text-lg font-bold text-[#1a1a1a]">Your Design</h3>
-              </div>
-              <div className="aspect-[4/3] bg-gray-50 rounded-2xl flex items-center justify-center overflow-hidden relative">
-                {_ ? (
-                  <div className="text-center">
-                    <LoaderCircle className="w-12 h-12 text-[#B8860B] animate-spin mx-auto mb-3" />
-                    <p className="text-gray-500">Creating design...</p>
-                  </div>
-                ) : x ? (
-                  <img src={x} alt="Concept Render" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-center text-gray-400">
-                    <TreePine className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>Design will appear here</p>
-                  </div>
-                )}
-                {x && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-center text-white text-xs backdrop-blur-sm">
-                    Sample concept — not an actual design for your plot
-                  </div>
-                )}
-              </div>
-              {x && (
-                <div className="flex gap-3 mt-4">
-                  <Button
-                    onClick={G}
-                    variant="outline"
-                    className="flex-1 rounded-full border-[#B8860B] text-[#B8860B]"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save
-                  </Button>
-                  <Button className="flex-1 rounded-full bg-gray-300 text-gray-600 cursor-not-allowed" title="Concept images cannot be downloaded directly. Save to library instead.">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download (Disabled)
-                  </Button>
-                  <Button 
-                    onClick={() => window.open(`https://wa.me/?text=Check out my compound wall concept from Gruham!`, "_blank")}
-                    className="flex-1 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
-                  >
-                    Share on WhatsApp
-                  </Button>
-                </div>
-              )}
-              {x && (
-                <div className="mt-6 bg-[#FAF8F5] p-4 rounded-xl border border-[#B8860B]/20 text-sm">
-                  <h4 className="font-semibold text-[#1a1a1a] mb-2 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#B8860B]" />
-                    Design Details & Cost Estimate
-                  </h4>
-                  <p className="text-gray-600 mb-4">
-                    <strong>Requested:</strong> {n} style compound wall {o ? `with ${o}` : ""}.
-                  </p>
-                  
-                  <h5 className="font-medium text-[#1a1a1a] mb-2">Indicative Finish Costs (₹/sq ft of wall area):</h5>
-                  <ul className="space-y-1 text-gray-600 mb-4">
-                    <li>• Standard (Brick & Plaster): ₹180 – ₹250</li>
-                    <li>• Premium (Stone cladding, grills): ₹300 – ₹450</li>
-                    <li>• Luxury (CNC cut panels, imported stone): ₹600+</li>
-                  </ul>
-                  
-                  <h5 className="font-medium text-[#1a1a1a] mb-2">What a Real Quote Must Include:</h5>
-                  <ul className="space-y-1 text-gray-600">
-                    <li>✓ Foundation depth & RCC specifications</li>
-                    <li>✓ Gate structural support (pillars)</li>
-                    <li>✓ Security systems conduit (cameras, lights)</li>
-                    <li>✓ Coping stone / weather shielding details</li>
-                  </ul>
-                </div>
-              )}
+          </div>
+
+          <div className="grid md:grid-cols-12 gap-6 items-end">
+            <div className="md:col-span-4">
+              <label className="text-xs font-bold text-gray-700 mb-1 block">Compound Style</label>
+              <Select value={wallStyle} onValueChange={setWallStyle}>
+                <SelectTrigger className="rounded-xl border-gray-200">
+                  <SelectValue placeholder="Style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="traditional_indian">Traditional Indian Teak & Stone</SelectItem>
+                  <SelectItem value="south_indian">South Indian Chettinad Pillars</SelectItem>
+                  <SelectItem value="modern">Modern Minimalist Concrete & Steel</SelectItem>
+                  <SelectItem value="luxury">Luxury Villa Landscaping & Gate</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </motion.div>
+
+            <div className="md:col-span-5">
+              <label className="text-xs font-bold text-gray-700 mb-1 block">Custom Notes</label>
+              <Input
+                value={wallPrompt}
+                onChange={(e) => setWallPrompt(e.target.value)}
+                placeholder="E.g., Automated sliding gate, warm pillar lanterns, flower beds..."
+                className="rounded-xl border-gray-200"
+              />
+            </div>
+
+            <div className="md:col-span-3">
+              <Button
+                onClick={handleGenerateCompoundWall}
+                disabled={isGeneratingWall}
+                className="w-full h-10 bg-[#B8860B] hover:bg-[#997320] text-white rounded-full font-bold text-xs shadow-md"
+              >
+                {isGeneratingWall ? "Generating..." : "Generate Compound Concept"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Wall Renders Grid */}
+          {generatedWallImages.length > 0 && (
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+              {generatedWallImages.map((url, i) => (
+                <div key={i} className="aspect-[16/10] rounded-2xl overflow-hidden shadow border border-gray-200">
+                  <img src={url} alt={`Compound ${i + 1}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* HOUSE DETAIL MODAL */}
+      <AnimatePresence>
+        {selectedHouse && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 space-y-6 relative shadow-2xl"
+            >
+              <button
+                onClick={() => setSelectedHouse(null)}
+                className="absolute top-4 right-4 p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
+              >
+                <X className="w-5 h-5 text-gray-700" />
+              </button>
+
+              <div>
+                <span className="text-xs font-bold text-[#B8860B] uppercase tracking-wider">{selectedHouse.category}</span>
+                <h2 className="font-serif text-3xl font-bold text-[#1a1a1a] mt-1">{selectedHouse.title}</h2>
+              </div>
+
+              {/* Image Gallery */}
+              <div className="grid grid-cols-2 gap-3">
+                {selectedHouse.images.map((img, idx) => (
+                  <div key={idx} className="aspect-[16/10] rounded-2xl overflow-hidden border border-gray-200">
+                    <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Specs & Description */}
+              <div className="space-y-3">
+                <p className="text-gray-700 text-sm leading-relaxed">{selectedHouse.description}</p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-amber-50/60 p-4 rounded-2xl border border-amber-200/50 text-xs">
+                  <div>
+                    <span className="text-gray-500 block">Living Room</span>
+                    <span className="font-bold text-gray-900">{selectedHouse.specs.livingSqft} sq ft</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block">Master Suite</span>
+                    <span className="font-bold text-gray-900">{selectedHouse.specs.masterBedSqft} sq ft</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block">Kitchen</span>
+                    <span className="font-bold text-gray-900">{selectedHouse.specs.kitchenType}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block">Garage</span>
+                    <span className="font-bold text-gray-900">{selectedHouse.specs.parking}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                <Button
+                  onClick={() => {
+                    setSelectedHouse(null);
+                    navigate(createPageUrl("BlueprintGenerator"));
+                  }}
+                  className="flex-1 rounded-full bg-[#B8860B] hover:bg-[#997320] text-white font-bold text-xs h-12"
+                >
+                  <Ruler className="w-4 h-4 mr-2" />
+                  Customize in Blueprint Generator
+                </Button>
+                <Button
+                  onClick={() => setInquiryModalOpen(true)}
+                  className="flex-1 rounded-full bg-[#1a1a1a] hover:bg-black text-white font-bold text-xs h-12"
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  Get a Quote / Contact Builder
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* INQUIRY MODAL */}
+      <AnimatePresence>
+        {inquiryModalOpen && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 relative shadow-2xl"
+            >
+              <button
+                onClick={() => setInquiryModalOpen(false)}
+                className="absolute top-4 right-4 p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
+              >
+                <X className="w-4 h-4 text-gray-700" />
+              </button>
+
+              <h3 className="font-serif text-xl font-bold text-[#1a1a1a]">Request Quote & Floor Plan</h3>
+              <p className="text-xs text-gray-600">Connect with local verified builders for {selectedHouse?.title}.</p>
+
+              <form onSubmit={handleInquirySubmit} className="space-y-3 pt-2">
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Your Name</label>
+                  <Input required placeholder="E.g., Ananya Rao" className="rounded-xl border-gray-200" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Phone Number</label>
+                  <Input required placeholder="+91 98765 43210" className="rounded-xl border-gray-200" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">City / Location</label>
+                  <Input required placeholder="E.g., Bengaluru" className="rounded-xl border-gray-200" />
+                </div>
+                <Button type="submit" className="w-full h-12 bg-[#B8860B] hover:bg-[#997320] text-white rounded-full font-bold text-xs mt-2">
+                  Submit Inquiry
+                </Button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

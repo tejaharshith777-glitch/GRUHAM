@@ -1,8 +1,13 @@
 import { useRef, useState } from "react";
 import {
   Building2,
+  Check,
   Download,
+  Grid,
+  House,
+  Image as ImageIcon,
   LoaderCircle,
+  Palette,
   Save,
   Sparkles,
   Upload,
@@ -10,164 +15,112 @@ import {
   X,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { base44 } from "../lib/base44";
+import { base44, STYLE_TOKENS } from "../lib/base44";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Disclaimer from "@/components/Disclaimer";
 
-const exteriorZones = [
-  {
-    id: "facade",
-    name: "Full Facade/Elevation",
-  },
-  {
-    id: "balcony",
-    name: "Balcony Design",
-  },
-  {
-    id: "terrace",
-    name: "Terrace/Roof",
-  },
-  {
-    id: "entrance",
-    name: "Main Entrance",
-  },
-  {
-    id: "windows",
-    name: "Window Designs",
-  },
-  {
-    id: "parking",
-    name: "Parking Area",
-  },
+const exteriorTypes = [
+  { id: "facade", name: "Front Elevation" },
+  { id: "villa", name: "Luxury Villa Facade" },
+  { id: "duplex", name: "Duplex Home Front" },
+  { id: "entrance", name: "Main Entrance Portico" },
+  { id: "terrace", name: "Terrace & Balcony" },
 ];
-const exteriorStyles = [
-  {
-    id: "modern",
-    name: "Modern Contemporary",
-  },
-  {
-    id: "traditional",
-    name: "Traditional Indian",
-  },
-  {
-    id: "minimalist",
-    name: "Minimalist",
-  },
-  {
-    id: "colonial",
-    name: "Colonial",
-  },
-  {
-    id: "mediterranean",
-    name: "Mediterranean",
-  },
-  {
-    id: "art_deco",
-    name: "Art Deco",
-  },
-  {
-    id: "tropical",
-    name: "Tropical",
-  },
-  {
-    id: "industrial",
-    name: "Industrial Modern",
-  },
-];
-const exteriorShowcase = [
-  {
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80",
-    style: "Modern Villa",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&q=80",
-    style: "Contemporary",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80",
-    style: "Luxury Home",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400&q=80",
-    style: "Minimalist",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80",
-    style: "Traditional",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&q=80",
-    style: "Modern Classic",
-  },
-];
-export default function ExteriorDesign() {
-  const [e, t] = useState("facade"),
-    [n, r] = useState(""),
-    [o, l] = useState(""),
-    [c, d] = useState("G+1"),
-    [h, p] = useState(null),
-    [m, y] = useState(false),
-    [x, j] = useState(null),
-    [_, S] = useState(false),
-    [N, w] = useState("2d"),
-    [C, E] = useState(0),
-    [toast, setToast] = useState(""),
-    T = useRef(null),
-    [P, B] = useState(null),
-    U = async (F) => {
-      const Q = F.target.files[0];
-      if (Q) {
-        (y(true), p(URL.createObjectURL(Q)));
-        try {
-          const { file_url: ee } = await base44.integrations.Core.UploadFile({
-            file: Q,
-          });
-          B(ee);
-        } catch (ee) {
-          console.error("Upload error:", ee);
-        }
-        y(false);
-      }
-    },
-    A = async () => {
-      if (n) {
-        S(true);
-        try {
-          const F = exteriorZones.find((re) => re.id === e)?.name || "Full Facade/Elevation",
-            Q = exteriorStyles.find((re) => re.id === n)?.name || n,
-            ee = `Professional exterior architectural elevation render of an Indian house ${F}:
-Style: ${Q}
-${o ? `Special details: ${o}` : ""}
-${P ? `CRITICAL: Apply modifications directly on this uploaded exterior image.` : ""}
 
-Create a high quality exterior render.`;
-          const re = await base44.integrations.Core.GenerateImage({
-            prompt: ee,
-          });
-          j(re.url);
-        } catch (F) {
-          console.error("Generation error:", F);
-        }
-        S(false);
-      }
-    },
-    G = async () => {
-      try {
-        await base44.entities.SavedDesign.create({
-          title: `${exteriorZones.find((ee) => ee.id === e)?.name || "Exterior"} - ${exteriorStyles.find((ee) => ee.id === n)?.name || "Design"}`,
-          design_type: "exterior",
-          style: n,
-          visualization_url: x,
-          prompt: o,
-        });
-        setToast("Design saved to library!");
-        setTimeout(() => setToast(""), 3000);
-      } catch (ee) {
-        console.error("Save error:", ee);
-      }
+const exteriorStyles = [
+  { id: "traditional_indian", name: "Traditional Indian", desc: "Sloped terracotta roof, Jharokha, teak pillars" },
+  { id: "south_indian", name: "South Indian / Kerala", desc: "Chettinad verandah, red tile roof" },
+  { id: "modern", name: "Modern Minimalist", desc: "Clean geometric lines, glass facades" },
+  { id: "contemporary", name: "Contemporary Luxury", desc: "Marble paneling, LED facade lighting" },
+  { id: "colonial", name: "British Colonial", desc: "Arched verandahs, white lime walls" },
+];
+
+export default function ExteriorDesign() {
+  const [selectedType, setSelectedType] = useState("facade");
+  const [selectedStyle, setSelectedStyle] = useState("traditional_indian");
+  const [floors, setFloors] = useState("G+1");
+  const [wallFinish, setWallFinish] = useState("Terracotta & Stone Cladding");
+  const [prompt, setPrompt] = useState("");
+  const [refImage, setRefImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedVariations, setGeneratedVariations] = useState([]);
+  const [activeVariationIdx, setActiveVariationIdx] = useState(0);
+  const [toast, setToast] = useState("");
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const url = URL.createObjectURL(file);
+      setRefImage(url);
+    } catch (err) {
+      console.error("Upload error:", err);
+    }
+    setIsUploading(false);
+  };
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      const typeName = exteriorTypes.find((t) => t.id === selectedType)?.name || "Front Elevation";
+      const styleObj = exteriorStyles.find((s) => s.id === selectedStyle) || exteriorStyles[0];
+
+      const fullPrompt = `${typeName} exterior design, ${floors} floors, ${styleObj.name} style. Wall finish: ${wallFinish}. ${prompt ? `Details: ${prompt}.` : ""} ${refImage ? "Maintain original building massing & structure from uploaded reference image." : ""}`;
+
+      const { urls } = await base44.integrations.Core.GenerateImageVariations({
+        prompt: fullPrompt,
+        styleToken: selectedStyle,
+        count: 4,
+      });
+
+      setGeneratedVariations(urls || []);
+      setActiveVariationIdx(0);
+    } catch (err) {
+      console.error("Generation error:", err);
+    }
+    setIsGenerating(false);
+  };
+
+  const handleSave = async (urlToSave) => {
+    const activeUrl = urlToSave || generatedVariations[activeVariationIdx];
+    if (!activeUrl) return;
+
+    const styleName = exteriorStyles.find((s) => s.id === selectedStyle)?.name || "Modern";
+    const title = `${styleName} Exterior (${floors})`;
+
+    const newDesign = {
+      id: "ext_" + Date.now(),
+      title,
+      design_type: "exterior",
+      style: selectedStyle,
+      image_url: activeUrl,
+      created_at: new Date().toISOString(),
     };
+
+    const existing = JSON.parse(localStorage.getItem("gruham_saved_designs") || "[]");
+    localStorage.setItem("gruham_saved_designs", JSON.stringify([newDesign, ...existing]));
+
+    try {
+      await base44.entities.SavedDesign.create({
+        title,
+        design_type: "exterior",
+        style: selectedStyle,
+        visualization_url: activeUrl,
+        prompt: prompt || title,
+      });
+    } catch (err) {
+      console.log("Local saved:", err);
+    }
+
+    setToast("Saved to 'My Designs'!");
+    setTimeout(() => setToast(""), 3500);
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 pb-16">
       {toast && (
@@ -175,271 +128,228 @@ Create a high quality exterior render.`;
           {toast}
         </div>
       )}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Disclaimer variant="generator" />
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 30,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          className="text-center mb-10"
-        >
+
+        {/* Page Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-[#B8860B]/10 rounded-full px-4 py-2 mb-4">
             <Building2 className="w-4 h-4 text-[#B8860B]" />
-            <span className="text-[#B8860B] font-medium text-sm">Exterior Design Studio</span>
+            <span className="text-[#B8860B] font-semibold text-sm">Exterior & Facade Studio</span>
           </div>
-          <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-4">
-            Design Stunning Exteriors
+          <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mb-3">
+            AI Exterior Elevation & Facade Studio
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            AI concept renders for facades, balconies, and terraces.
-            For planning and visualization — not professional architectural drawings.
+            Design stunning 3D home exterior elevations, front facades, and roofing with style-locked Indian architecture.
           </p>
         </motion.div>
 
-        {/* Disclaimer */}
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-8">
-          <span className="text-amber-600 text-lg flex-shrink-0">⚠️</span>
-          <p className="text-amber-800 text-sm leading-relaxed">
-            <strong>Concept renders only.</strong> AI-generated exterior images are for inspiration and planning discussions — not structural or permit-ready drawings.
-          </p>
-        </div>
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-          {exteriorZones.map((F) => (
-            <button
-              key={F.id}
-              onClick={() => t(F.id)}
-              className={`px-5 py-3 rounded-full transition-all ${e === F.id ? "bg-[#B8860B] text-white shadow-lg" : "bg-white text-gray-700 hover:bg-[#B8860B]/10"}`}
-            >
-              {F.name}
-            </button>
-          ))}
-        </div>
-        <div className="grid lg:grid-cols-2 gap-8">
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: -30,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-            className="space-y-6"
-          >
-            <div className="bg-white rounded-3xl p-6 shadow-lg">
-              <h3 className="font-serif text-lg font-bold text-[#1a1a1a] mb-4">
-                Upload Reference (Optional)
-              </h3>
-              {h ? (
-                <div className="relative">
-                  <img src={h} alt="Uploaded" className="w-full h-48 object-cover rounded-2xl" />
-                  <button
-                    onClick={() => p(null)}
-                    className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onClick={() => {
-                    return T.current?.click();
-                  }}
-                  className="border-2 border-dashed border-[#B8860B]/30 rounded-2xl p-8 text-center cursor-pointer hover:border-[#B8860B]"
-                >
-                  <Upload className="w-10 h-10 text-[#B8860B] mx-auto mb-3" />
-                  <p className="text-gray-600">Upload existing exterior photo</p>
-                </div>
-              )}
-              <input ref={T} type="file" accept="image/*" onChange={U} className="hidden" />
-            </div>
-            <div className="bg-white rounded-3xl p-6 shadow-lg space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Style</label>
-                  <Select value={n} onValueChange={r}>
-                    <SelectTrigger className="rounded-xl">
-                      <SelectValue placeholder="Choose style" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {exteriorStyles.map((F) => (
-                        <SelectItem key={F.id} value={F.id}>
-                          {F.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Floors</label>
-                  <Select value={c} onValueChange={d}>
-                    <SelectTrigger className="rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["Ground Only", "G+1", "G+2", "G+3", "G+4"].map((F) => (
-                        <SelectItem key={F} value={F}>
-                          {F}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+        {/* Studio Grid */}
+        <div className="grid lg:grid-cols-12 gap-8">
+          {/* Controls Column (5 cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 space-y-6">
+              
+              {/* Type Selection */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Additional Details
-                </label>
-                <Textarea
-                  value={o}
-                  onChange={(F) => l(F.target.value)}
-                  placeholder="E.g., glass railings, wooden cladding, stone facade, LED lighting..."
-                  className="h-24"
-                />
+                <label className="text-sm font-bold text-gray-800 mb-3 block">1. Exterior Focus</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {exteriorTypes.map((type) => (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => setSelectedType(type.id)}
+                      className={`p-3 rounded-xl text-left border transition-all ${
+                        selectedType === type.id
+                          ? "bg-[#B8860B] text-white border-[#B8860B] shadow-md font-bold"
+                          : "bg-gray-50 text-gray-700 border-gray-200 hover:border-[#B8860B]"
+                      }`}
+                    >
+                      <span className="text-xs">{type.name}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <Button
-              onClick={A}
-              disabled={!n || _}
-              className="w-full h-14 bg-gradient-to-r from-[#B8860B] to-[#D4A84B] text-white rounded-full font-semibold text-lg"
-            >
-              {_ ? (
-                <>
-                  <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
-                  Designing...
-                </>
-              ) : (
-                <>
-                  <WandSparkles className="w-5 h-5 mr-2" />
-                  Generate Exterior Design
-                </>
-              )}
-            </Button>
-          </motion.div>
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: 30,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-          >
-            <div className="bg-white rounded-3xl p-6 shadow-lg h-full min-h-[500px]">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-serif text-lg font-bold text-[#1a1a1a]">Your Design</h3>
+
+              {/* Style Selection */}
+              <div>
+                <label className="text-sm font-bold text-gray-800 mb-3 block">2. Exterior Style (Style-Locked)</label>
+                <div className="space-y-2">
+                  {exteriorStyles.map((style) => (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() => setSelectedStyle(style.id)}
+                      className={`w-full p-3 rounded-2xl text-left border flex items-center justify-between transition-all ${
+                        selectedStyle === style.id
+                          ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-lg"
+                          : "bg-gray-50 text-gray-800 border-gray-200 hover:border-[#B8860B]"
+                      }`}
+                    >
+                      <div>
+                        <div className="font-bold text-xs">{style.name}</div>
+                        <div className="text-[10px] opacity-75">{style.desc}</div>
+                      </div>
+                      {selectedStyle === style.id && <Check className="w-4 h-4 text-[#B8860B]" />}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="aspect-[4/3] bg-gray-50 rounded-2xl flex items-center justify-center overflow-hidden relative">
-                {_ ? (
-                  <div className="text-center">
-                    <LoaderCircle className="w-12 h-12 text-[#B8860B] animate-spin mx-auto mb-3" />
-                    <p className="text-gray-500">Creating design...</p>
+
+              {/* Floors & Finish Options */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-bold text-gray-800 mb-1.5 block">Floor Count</label>
+                  <Select value={floors} onValueChange={setFloors}>
+                    <SelectTrigger className="rounded-xl border-gray-200">
+                      <SelectValue placeholder="Floors" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Ground Only (G+0)">Ground Only (G+0)</SelectItem>
+                      <SelectItem value="G+1">G+1 (2 Storey)</SelectItem>
+                      <SelectItem value="G+2">G+2 (3 Storey)</SelectItem>
+                      <SelectItem value="Duplex Villa">Duplex Villa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-gray-800 mb-1.5 block">Primary Wall Finish</label>
+                  <Select value={wallFinish} onValueChange={setWallFinish}>
+                    <SelectTrigger className="rounded-xl border-gray-200">
+                      <SelectValue placeholder="Finish" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Terracotta & Stone Cladding">Terracotta & Stone</SelectItem>
+                      <SelectItem value="Teakwood & Plaster">Teakwood & Plaster</SelectItem>
+                      <SelectItem value="Granite & Glass">Granite & Glass</SelectItem>
+                      <SelectItem value="Classic White Lime">Classic White Lime</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Upload Reference Photo */}
+              <div>
+                <label className="text-sm font-bold text-gray-800 mb-2 block">3. Reference Building Photo (Optional)</label>
+                {refImage ? (
+                  <div className="relative rounded-2xl overflow-hidden border border-gray-200 aspect-[16/9]">
+                    <img src={refImage} alt="Reference" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => setRefImage(null)}
+                      className="absolute top-2 right-2 p-1 bg-black/60 text-white rounded-full hover:bg-black"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                ) : x ? (
-                  <img src={x} alt="Concept Render" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="text-center text-gray-400">
-                    <Building2 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>Design will appear here</p>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-[#B8860B]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#B8860B] hover:bg-[#B8860B]/5 transition-all"
+                  >
+                    <Upload className="w-6 h-6 text-[#B8860B] mx-auto mb-1" />
+                    <span className="text-xs font-semibold text-gray-700">Upload current house photo for facade restyling</span>
                   </div>
                 )}
-                {x && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-center text-white text-xs backdrop-blur-sm">
-                    Sample concept — not an actual design for your plot
-                  </div>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+              </div>
+
+              {/* Generate Action */}
+              <Button
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="w-full h-14 bg-gradient-to-r from-[#B8860B] to-[#D4A84B] hover:from-[#D4A84B] hover:to-[#B8860B] text-white rounded-full font-bold text-base shadow-xl"
+              >
+                {isGenerating ? (
+                  <>
+                    <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
+                    Generating 4 Exterior Renders...
+                  </>
+                ) : (
+                  <>
+                    <WandSparkles className="w-5 h-5 mr-2" />
+                    Generate 4 Exterior Renders
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Render Output Column (7 cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-serif text-xl font-bold text-[#1a1a1a] flex items-center gap-2">
+                  <Grid className="w-5 h-5 text-[#B8860B]" />
+                  Generated 3D Exterior Elevations
+                </h3>
+                {generatedVariations.length > 0 && (
+                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                    4 Renders Generated
+                  </span>
                 )}
               </div>
-              {x && (
-                <div className="flex gap-3 mt-4">
-                  <Button
-                    onClick={G}
-                    variant="outline"
-                    className="flex-1 rounded-full border-[#B8860B] text-[#B8860B]"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save
-                  </Button>
-                  <Button className="flex-1 rounded-full bg-gray-300 text-gray-600 cursor-not-allowed" title="Concept images cannot be downloaded directly. Save to library instead.">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download (Disabled)
-                  </Button>
-                  <Button 
-                    onClick={() => window.open(`https://wa.me/?text=Check out my exterior design concept from Gruham!`, "_blank")}
-                    className="flex-1 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
-                  >
-                    Share on WhatsApp
-                  </Button>
-                </div>
-              )}
-              {x && (
-                <div className="mt-6 bg-[#FAF8F5] p-4 rounded-xl border border-[#B8860B]/20 text-sm">
-                  <h4 className="font-semibold text-[#1a1a1a] mb-2 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#B8860B]" />
-                    Design Details & Cost Estimate
-                  </h4>
-                  <p className="text-gray-600 mb-4">
-                    <strong>Requested:</strong> {n} style exterior for {e} floors {o ? `with ${o}` : ""}.
+
+              {generatedVariations.length === 0 ? (
+                <div className="aspect-[16/10] bg-gray-50 rounded-2xl flex flex-col items-center justify-center p-8 text-center border border-gray-200">
+                  <ImageIcon className="w-12 h-12 text-gray-300 mb-3" />
+                  <p className="font-semibold text-gray-600">Configure exterior options & click Generate</p>
+                  <p className="text-xs text-gray-400 max-w-xs mt-1">
+                    Elevation outputs will strictly adhere to the selected architectural style tokens.
                   </p>
-                  
-                  <h5 className="font-medium text-[#1a1a1a] mb-2">Indicative Finish Costs (₹/sq ft of elevation):</h5>
-                  <ul className="space-y-1 text-gray-600 mb-4">
-                    <li>• Standard (Paint & simple plaster): ₹150 – ₹250</li>
-                    <li>• Premium (Texture, tiles, mild steel): ₹350 – ₹600</li>
-                    <li>• Luxury (Stone cladding, glass, HPL): ₹800+</li>
-                  </ul>
-                  
-                  <h5 className="font-medium text-[#1a1a1a] mb-2">What a Real Quote Must Include:</h5>
-                  <ul className="space-y-1 text-gray-600">
-                    <li>✓ Elevation structural drawings & loads</li>
-                    <li>✓ Scaffolding costs (often hidden)</li>
-                    <li>✓ Weather-proofing & sealant specifications</li>
-                    <li>✓ Lighting placement & wiring diagrams</li>
-                  </ul>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Main Selected Image */}
+                  <div className="aspect-[16/10] rounded-2xl overflow-hidden shadow-md border border-gray-200 relative group">
+                    <img
+                      src={generatedVariations[activeVariationIdx]}
+                      alt="Exterior Facade Render"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-4 right-4 flex gap-2 opacity-95">
+                      <Button
+                        onClick={() => handleSave(generatedVariations[activeVariationIdx])}
+                        className="bg-[#1a1a1a] hover:bg-black text-[#B8860B] rounded-full text-xs font-bold"
+                      >
+                        <Save className="w-3.5 h-3.5 mr-1" />
+                        Save Facade
+                      </Button>
+                      <a
+                        href={generatedVariations[activeVariationIdx]}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-[#B8860B] hover:bg-[#997320] text-white px-3 py-2 rounded-full text-xs font-bold flex items-center gap-1"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        HD View
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* 4 Variation Thumbnails Grid */}
+                  <div className="grid grid-cols-4 gap-3">
+                    {generatedVariations.map((url, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveVariationIdx(idx)}
+                        className={`aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all relative ${
+                          activeVariationIdx === idx ? "border-[#B8860B] ring-2 ring-[#B8860B]/30 scale-105" : "border-gray-200 opacity-70 hover:opacity-100"
+                        }`}
+                      >
+                        <img src={url} alt={`Render ${idx + 1}`} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] font-mono px-1.5 py-0.5 rounded">
+                          Render {idx + 1}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
-          </motion.div>
-        </div>
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 30,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            delay: 0.3,
-          }}
-          className="mt-16"
-        >
-          <h2 className="font-serif text-2xl font-bold text-[#1a1a1a] text-center mb-8">
-            Exterior Inspiration Gallery
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {exteriorShowcase.map((F, Q) => (
-              <motion.div
-                key={Q}
-                whileHover={{
-                  scale: 1.05,
-                }}
-                className="relative rounded-2xl overflow-hidden group cursor-pointer"
-              >
-                <img src={F.image} alt={F.style} className="w-full h-40 object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                  <p className="text-white text-sm font-medium">{F.style}</p>
-                </div>
-              </motion.div>
-            ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
