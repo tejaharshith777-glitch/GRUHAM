@@ -13,7 +13,25 @@ export default class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error("[GRUHAM ErrorBoundary caught error]:", error, errorInfo);
+    // Automatically recover from stale chunk load errors after deployment
+    const isChunkError = error?.message && (
+      error.message.includes("dynamically imported module") ||
+      error.message.includes("Importing a module script failed") ||
+      error.message.includes("Loading chunk")
+    );
+    if (isChunkError) {
+      const lastReload = Number(sessionStorage.getItem("gruham_chunk_reload") || 0);
+      if (Date.now() - lastReload > 10000) {
+        sessionStorage.setItem("gruham_chunk_reload", String(Date.now()));
+        window.location.reload();
+      }
+    }
   }
+
+  handleReload = () => {
+    sessionStorage.removeItem("gruham_chunk_reload");
+    window.location.href = window.location.pathname + "?v=" + Date.now();
+  };
 
   render() {
     if (this.state.hasError) {
@@ -33,7 +51,7 @@ export default class ErrorBoundary extends React.Component {
               </div>
             )}
             <button
-              onClick={() => window.location.reload()}
+              onClick={this.handleReload}
               className="inline-flex items-center gap-2 bg-[#B8860B] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#1a1a1a] transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
