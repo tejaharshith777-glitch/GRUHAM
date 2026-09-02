@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 
-export default function Preloader({ onComplete, duration = 1000 }) {
+export default function Preloader({ onComplete, duration = 800 }) {
   const [progress, setProgress] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const onCompleteRef = useRef(onComplete);
@@ -10,29 +10,38 @@ export default function Preloader({ onComplete, duration = 1000 }) {
   }, [onComplete]);
 
   useEffect(() => {
-    const startTime = performance.now();
+    const startTime = Date.now();
+    let completed = false;
 
-    const updateProgress = (currentTime) => {
-      const elapsed = currentTime - startTime;
-      const rawProgress = Math.min((elapsed / duration) * 100, 100);
-      
-      const easedProgress = Math.floor(rawProgress);
-      setProgress(easedProgress);
-
-      if (rawProgress < 100) {
-        requestAnimationFrame(updateProgress);
-      } else {
-        setTimeout(() => {
-          setIsFadingOut(true);
-          setTimeout(() => {
-            if (onCompleteRef.current) onCompleteRef.current();
-          }, 400);
-        }, 150);
-      }
+    const finish = () => {
+      if (completed) return;
+      completed = true;
+      setIsFadingOut(true);
+      setTimeout(() => {
+        if (onCompleteRef.current) onCompleteRef.current();
+      }, 300);
     };
 
-    const animFrame = requestAnimationFrame(updateProgress);
-    return () => cancelAnimationFrame(animFrame);
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(Math.floor((elapsed / duration) * 100), 100);
+      setProgress(pct);
+      if (pct >= 100) {
+        clearInterval(timer);
+        finish();
+      }
+    }, 20);
+
+    // Failsafe timeout guarantees completion even if tab is in background
+    const failsafe = setTimeout(() => {
+      clearInterval(timer);
+      finish();
+    }, duration + 500);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(failsafe);
+    };
   }, [duration]);
 
   return (

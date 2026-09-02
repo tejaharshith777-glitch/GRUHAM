@@ -54,6 +54,8 @@ export const PAGES = {
 
 import { ToastProvider } from "@/components/Toast";
 
+import React, { useEffect } from "react";
+
 export default function App() {
   const location = useLocation();
   const [showPreloader, setShowPreloader] = useState(true);
@@ -61,6 +63,14 @@ export default function App() {
 
   const handlePreloaderComplete = useCallback(() => {
     setShowPreloader(false);
+  }, []);
+
+  // Hard safety fallback: guarantee preloader is dismissed after 1.5s max
+  useEffect(() => {
+    const safetyTimer = setTimeout(() => {
+      setShowPreloader(false);
+    }, 1500);
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   return (
