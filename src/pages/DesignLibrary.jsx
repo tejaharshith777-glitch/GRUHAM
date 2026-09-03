@@ -14,6 +14,7 @@ import {
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "../lib/base44";
+import { listSavedDesigns, deleteSavedDesign } from "../lib/designService";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,7 +29,7 @@ export default function DesignLibrary() {
     m = useQueryClient(),
     { data: y = [], isLoading: x } = useQuery({
       queryKey: ["savedDesigns"],
-      queryFn: () => base44.entities.SavedDesign.list("-created_date"),
+      queryFn: () => listSavedDesigns(),
     });
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function DesignLibrary() {
   }, [y]);
 
   const j = useMutation({
-      mutationFn: (w) => base44.entities.SavedDesign.delete(w),
+      mutationFn: (w) => deleteSavedDesign(w),
       onSuccess: () =>
         m.invalidateQueries({
           queryKey: ["savedDesigns"],

@@ -353,7 +353,29 @@ export default function CompoundDesign() {
                       onClick={() => setSelectedHouse(house)}
                       className="flex-1 rounded-full bg-[#1a1a1a] hover:bg-black text-white text-xs font-bold py-2.5"
                     >
-                      View Details & Gallery
+                      View Details
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        try {
+                          const { saveDesign } = await import("../lib/designService");
+                          await saveDesign({
+                            title: house.title,
+                            design_type: "compound",
+                            style: house.style,
+                            image_url: house.images[0],
+                            plot_details: { sqft: house.sqft, bhk: house.bhk, priceEst: house.priceEst },
+                          });
+                          setToast("Saved to 'My Designs'!");
+                          setTimeout(() => setToast(""), 3500);
+                        } catch (err) {
+                          console.error("Save error:", err);
+                        }
+                      }}
+                      variant="outline"
+                      className="rounded-full border-[#B8860B] text-[#B8860B] hover:bg-[#B8860B] hover:text-white text-xs font-bold px-4"
+                    >
+                      Save
                     </Button>
                   </div>
                 </div>

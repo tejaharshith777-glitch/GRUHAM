@@ -107,19 +107,17 @@ export default function InteriorDesign() {
       created_at: new Date().toISOString(),
     };
 
-    const existing = JSON.parse(localStorage.getItem("gruham_saved_designs") || "[]");
-    localStorage.setItem("gruham_saved_designs", JSON.stringify([newDesign, ...existing]));
-
     try {
-      await base44.entities.SavedDesign.create({
+      const { saveDesign } = await import("../lib/designService");
+      await saveDesign({
         title,
         design_type: "interior",
         style: selectedStyle,
-        visualization_url: activeUrl,
+        image_url: activeUrl,
         prompt: prompt || roomName,
       });
     } catch (err) {
-      console.log("Local saved:", err);
+      console.log("Saved:", err);
     }
 
     setToast("Saved to 'My Designs'!");

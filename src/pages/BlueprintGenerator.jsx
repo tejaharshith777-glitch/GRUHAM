@@ -170,21 +170,25 @@ export default function BlueprintGenerator() {
     img.src = url;
   };
 
-  // Generate 3D/AI Elevation Render
-  const handleGenerateAiElevation = async () => {
-    setIsGeneratingAi(true);
-    setAiStatus("Generating architectural 3D exterior elevation...");
+  // Save Blueprint to Supabase / Design Library
+  const handleSaveBlueprint = async () => {
+    if (!planData) return;
     try {
-      const promptText = `Photorealistic Indian exterior home elevation render, ${bhk} ${floors} ${layoutStyle} style, plot ${plotLength}x${plotWidth} ft ${plotShape}, ${facing} facing, beautiful front entrance, balconies, landscaped yard, warm lighting.`;
-      const res = await base44.integrations.Core.GenerateImage({ prompt: promptText });
-      if (res?.url) {
-        setAiElevationUrl(res.url);
-      }
+      const { saveDesign } = await import("../lib/designService");
+      await saveDesign({
+        title: `${bhk} ${layoutStyle === "courtyard" ? "Courtyard Villa" : "Home"} (${plotLength}x${plotWidth} ft)`,
+        design_type: "blueprint",
+        style: layoutStyle,
+        vastu_preference: facing + " Facing",
+        plot_details: { plotLength, plotWidth, facing, floors, bhk, plotShape, layoutStyle },
+        blueprint_json: planData,
+        image_urls: aiElevationUrl ? [aiElevationUrl] : [],
+      });
+      setToast("Saved to 'My Designs'!");
+      setTimeout(() => setToast(""), 3500);
     } catch (err) {
-      console.error("AI Elevation generation error:", err);
+      console.error("Save blueprint error:", err);
     }
-    setIsGeneratingAi(false);
-    setAiStatus("");
   };
 
   return (
@@ -461,7 +465,7 @@ export default function BlueprintGenerator() {
               {!planData?.error && (
                 <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-gray-100">
                   <Button
-                    onClick={handleSave}
+                    onClick={handleSaveBlueprint}
                     variant="outline"
                     className="flex-1 rounded-full border-[#B8860B] text-[#B8860B] hover:bg-[#B8860B] hover:text-white"
                   >
