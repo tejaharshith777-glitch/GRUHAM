@@ -185,15 +185,24 @@ export default function Pricing() {
 
               <div className="space-y-3">
                 {boqData.breakdown.map((item, idx) => (
-                  <div key={idx} className="p-3.5 rounded-2xl bg-gray-50 flex items-center justify-between text-xs border border-gray-100">
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => navigate(createPageUrl("Materials") + `?category=${encodeURIComponent(item.category)}`)}
+                    title={`Click to see materials pricing for ${item.category}`}
+                    className="w-full p-3.5 rounded-2xl bg-gray-50 flex items-center justify-between text-xs border border-gray-100 hover:border-[#B8860B] hover:bg-[#B8860B]/5 transition-all text-left group"
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#B8860B]/10 text-[#B8860B] font-bold flex items-center justify-center text-xs">
+                      <div className="w-8 h-8 rounded-full bg-[#B8860B]/10 text-[#B8860B] font-bold flex items-center justify-center text-xs group-hover:bg-[#B8860B] group-hover:text-white transition-colors">
                         {item.pct}%
                       </div>
-                      <span className="font-semibold text-gray-900">{item.category}</span>
+                      <div>
+                        <span className="font-semibold text-gray-900 group-hover:text-[#B8860B] block">{item.category}</span>
+                        <span className="text-[10px] text-gray-400">View materials & rates →</span>
+                      </div>
                     </div>
                     <span className="font-bold text-gray-900 text-sm">{inr(item.cost)}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
 

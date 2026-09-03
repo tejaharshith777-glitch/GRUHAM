@@ -150,18 +150,58 @@ export default function Contractors() {
     message: "",
   });
 
-  // Load persistent contractors & leads on mount
+  // Load persistent contractors & Firestore contractors on mount
   useEffect(() => {
-    const savedContractors = JSON.parse(localStorage.getItem("gruham_contractors") || "null");
-    if (savedContractors && savedContractors.length > 0) {
-      setContractorsList(savedContractors);
-    } else {
-      setContractorsList(INITIAL_CONTRACTORS);
-      localStorage.setItem("gruham_contractors", JSON.stringify(INITIAL_CONTRACTORS));
+    let unsubscribeFs = null;
+
+    async function loadData() {
+      // 1. Load sample / local contractors
+      const savedContractors = JSON.parse(localStorage.getItem("gruham_contractors") || "null") || INITIAL_CONTRACTORS;
+      const sampleTagged = savedContractors.map((c) => ({
+        ...c,
+        profile_type: c.profile_type || "sample",
+        is_sample: true,
+      }));
+
+      setContractorsList(sampleTagged);
+
+      // 2. Fetch live Firestore contractors if configured
+      try {
+        const { db, isFirebaseConfigured } = await import("../lib/firebase");
+        const { collection, onSnapshot } = await import("firebase/firestore");
+        if (isFirebaseConfigured && db) {
+          unsubscribeFs = onSnapshot(collection(db, "contractors"), (snapshot) => {
+            const fsContractors = snapshot.docs.map((docSnap) => ({
+              id: docSnap.id,
+              ...docSnap.data(),
+              specialty: docSnap.data().specialization || docSnap.data().specialty || "Civil Construction",
+              rateSqft: docSnap.data().price_range ? `₹${docSnap.data().price_range}/sqft` : "₹1,800/sqft",
+              experience: docSnap.data().experience || docSnap.data().experience_years || 5,
+              verified: true,
+              is_sample: false,
+              profile_type: "verified_contractor",
+            }));
+
+            if (fsContractors.length > 0) {
+              // Combine live Firestore contractors first, followed by sample contractors
+              const combined = [...fsContractors, ...sampleTagged.filter(s => !fsContractors.some(f => f.id === s.id))];
+              setContractorsList(combined);
+            }
+          });
+        }
+      } catch (err) {
+        console.warn("[GRUHAM Firestore] Could not load Firestore contractors:", err);
+      }
     }
+
+    loadData();
 
     const savedLeads = JSON.parse(localStorage.getItem("gruham_contractor_leads") || "[]");
     setLeadsList(savedLeads);
+
+    return () => {
+      if (unsubscribeFs) unsubscribeFs();
+    };
   }, []);
 
   // Customer Filtered Contractors List
@@ -353,8 +393,14 @@ export default function Contractors() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-serif text-xl font-bold text-[#1a1a1a]">{c.name}</h3>
-                        {c.verified && (
-                          <ShieldCheck className="w-5 h-5 text-emerald-600 fill-emerald-100" title="Verified Contractor" />
+                        {c.is_sample ? (
+                          <span className="text-[10px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full border border-gray-200">
+                            Sample Profile
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified Partner
+                          </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">

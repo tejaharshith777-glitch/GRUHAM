@@ -345,7 +345,7 @@ function assistantReply(prompt) {
 
 async function callGemini(prompt, schema) {
   const key = import.meta.env?.VITE_GEMINI_API_KEY;
-  if (!key) return null;
+  if (!key || key.includes("your_") || key.trim() === "") return null;
   try {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,

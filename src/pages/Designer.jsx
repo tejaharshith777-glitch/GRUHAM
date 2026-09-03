@@ -232,14 +232,17 @@ export default function Designer() {
       }
     },
     T = async () => {
-      if (!(!n || !o || !c)) {
+      if (o && c) {
         y(true);
         try {
           const A = interiorStylesList.find((Q) => Q.id === o)?.name || o,
             G = designerRoomTypes.find((Q) => Q.id === c)?.name || c,
-            F = await base44.integrations.Core.GenerateImage({
-              prompt: `Interior design visualization: Transform this ${G} into a beautiful ${A} style space. Create a photorealistic render showing the room redesigned with ${A} furniture, decor, colors, and lighting. Maintain the room's basic structure and layout but completely transform the style. High quality, professional interior photography style, 4K resolution, natural lighting.`,
-            });
+            fullPrompt = n
+              ? `Interior design visualization: Transform this ${G} into a beautiful ${A} style space. Maintain original room layout.`
+              : `Interior design visualization: Create a beautiful ${G} in ${A} style with authentic furniture, lighting, and colors.`;
+          const F = await base44.integrations.Core.GenerateImage({
+            prompt: fullPrompt,
+          });
           p(F.url);
         } catch (A) {
           console.error("Generation error:", A);
@@ -669,7 +672,7 @@ export default function Designer() {
             </div>
             <Button
               onClick={T}
-              disabled={!n || !o || !c || m}
+              disabled={!o || !c || m}
               className="w-full h-14 bg-gradient-to-r from-[#B8860B] to-[#D4A84B] hover:from-[#D4A84B] hover:to-[#B8860B] text-white rounded-full font-semibold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {m ? (

@@ -1,9 +1,13 @@
 /**
  * GRUHAM Real BOQ & Live Material Pricing Engine
  *
- * City rates & Wikipedia commodity data reviewed: September 2026
- * All rates in INR. Includes material specs, trend indicators (↑/↓), and historical tracking.
+ * City rates & materials catalog synced: September 2, 2026
+ * All rates in INR. Integrates single source of truth from materialsData.js.
  */
+
+import { MATERIALS_CATALOG, RATES_REVIEWED_DATE } from "./materialsData";
+
+export { MATERIALS_CATALOG, RATES_REVIEWED_DATE };
 
 // ─── Indian Currency Formatting ──────────────────────────────────────────────
 export function inr(n) {
@@ -37,154 +41,14 @@ export const CITY_INDEX = {
   Ahmedabad: 0.93,
 };
 export const CITY_NAMES = Object.keys(CITY_INDEX);
-export const RATES_REVIEWED_DATE = "September 2, 2026";
 
 // ─── Finish Level Base Rates ────────────────────────────────────────────────
 export const FINISH_RATES = {
   budget: { label: "Budget Tier", rate: 1450, desc: "Basic finishes, standard red bricks, economy tiles" },
-  standard: { label: "Standard Tier", rate: 1850, desc: "Branded 53-grade cement, TMT Fe500, vitrified tiles" },
+  standard: { label: "Standard Tier", rate: 1850, desc: "Branded 53-grade cement, TMT Fe550, vitrified tiles" },
   premium: { label: "Premium Tier", rate: 2450, desc: "Italian marble, Teakwood doors, Jaquar fittings" },
   luxury: { label: "Luxury Tier", rate: 3400, desc: "Imported Statuario marble, smart home automation, Kohler fixtures" },
 };
-
-// ─── Authentic Materials Catalog Dataset ────────────────────────────────────
-export const MATERIALS_CATALOG = [
-  {
-    id: "mat_101",
-    name: "UltraTech / ACC 53 Grade OPC Cement",
-    category: "Cement & Masonry",
-    unit: "Bag (50 kg)",
-    basePrice: 385,
-    prevPrice: 375,
-    trendPct: "+2.6%",
-    trendDirection: "up",
-    lastUpdated: "September 2, 2026",
-    specs: "Ordinary Portland Cement (IS 12269), High early strength for structural RCC beams & slabs.",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Portland_cement",
-    sourceName: "Builders Association of India & Wikipedia",
-    image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=75&auto=format&fit=crop"
-  },
-  {
-    id: "mat_102",
-    name: "TMT Rebar Steel (Fe-550D Grade)",
-    category: "Structural Steel",
-    unit: "Ton (1000 kg)",
-    basePrice: 64500,
-    prevPrice: 65800,
-    trendPct: "-1.9%",
-    trendDirection: "down",
-    lastUpdated: "September 2, 2026",
-    specs: "Thermo-Mechanically Treated high ductility rebar (IS 1786). Earthquake resistant grade.",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Thermo-mechanically_treated_bars",
-    sourceName: "Joint Plant Committee & Wikipedia Steel Index",
-    image: "https://images.unsplash.com/photo-1535813547-99c456a41d4a?w=800&q=75&auto=format&fit=crop"
-  },
-  {
-    id: "mat_103",
-    name: "First Class Kiln Burned Red Clay Bricks",
-    category: "Cement & Masonry",
-    unit: "Piece (1000 nos)",
-    basePrice: 8500,
-    prevPrice: 8200,
-    trendPct: "+3.6%",
-    trendDirection: "up",
-    lastUpdated: "September 2, 2026",
-    specs: "Standard 9\" x 4.25\" x 2.75\" burnt clay bricks, crushing strength > 105 kg/cm².",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Brick",
-    sourceName: "National Brick Manufacturers Federation",
-    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=75&auto=format&fit=crop"
-  },
-  {
-    id: "mat_104",
-    name: "Autoclaved Aerated Concrete (AAC) Blocks",
-    category: "Cement & Masonry",
-    unit: "Cubic Meter",
-    basePrice: 3400,
-    prevPrice: 3400,
-    trendPct: "0.0%",
-    trendDirection: "stable",
-    lastUpdated: "September 2, 2026",
-    specs: "Lightweight thermal insulation blocks (600x200x150mm), 3x faster masonry speed than red bricks.",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Autoclaved_aerated_concrete",
-    sourceName: "Indian Green Building Council",
-    image: "https://images.unsplash.com/photo-1590069261209-f8e9bf8c6d3a?w=800&q=75&auto=format&fit=crop"
-  },
-  {
-    id: "mat_105",
-    name: "GVT Vitrified Floor Tiles (2x2 ft)",
-    category: "Flooring & Tiles",
-    unit: "Sq Ft",
-    basePrice: 65,
-    prevPrice: 62,
-    trendPct: "+4.8%",
-    trendDirection: "up",
-    lastUpdated: "September 2, 2026",
-    specs: "Glazed Vitrified Double Charge stain-resistant ceramic tiles with ultra-shiny gloss finish.",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Vitrified_tile",
-    sourceName: "Morbi Ceramic Manufacturers Association",
-    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=75&auto=format&fit=crop"
-  },
-  {
-    id: "mat_106",
-    name: "Italian Botticino / Statuario Marble",
-    category: "Flooring & Tiles",
-    unit: "Sq Ft",
-    basePrice: 380,
-    prevPrice: 395,
-    trendPct: "-3.7%",
-    trendDirection: "down",
-    lastUpdated: "September 2, 2026",
-    specs: "Imported 18mm polished marble slab with vein patterns for luxury living rooms.",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Marble",
-    sourceName: "All India Granites & Marbles Association",
-    image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=75&auto=format&fit=crop"
-  },
-  {
-    id: "mat_107",
-    name: "Burma Teak Wood Timber Planks",
-    category: "Wood & Doors",
-    unit: "Cubic Feet",
-    basePrice: 3200,
-    prevPrice: 3100,
-    trendPct: "+3.2%",
-    trendDirection: "up",
-    lastUpdated: "September 2, 2026",
-    specs: "Seasoned A-grade natural teak timber for entrance main door frames & carved panels.",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Teak",
-    sourceName: "Timber Trade Federation & Wikipedia",
-    image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=75&auto=format&fit=crop"
-  },
-  {
-    id: "mat_108",
-    name: "Asian Paints Apex Ultima Exterior Emulsion",
-    category: "Paints & Finishes",
-    unit: "Bucket (20 Liter)",
-    basePrice: 5400,
-    prevPrice: 5300,
-    trendPct: "+1.8%",
-    trendDirection: "up",
-    lastUpdated: "September 2, 2026",
-    specs: "Advanced dust-pick-up resistant weather-proof exterior silicone emulsion paint.",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Paint",
-    sourceName: "Indian Paint Association Market Data",
-    image: "https://images.unsplash.com/photo-1562259949-e8f7685d8f56?w=800&q=75&auto=format&fit=crop"
-  },
-  {
-    id: "mat_109",
-    name: "Jaquar Chrome Single Lever Diverter Set",
-    category: "Plumbing & Electrical",
-    unit: "Set",
-    basePrice: 4850,
-    prevPrice: 4850,
-    trendPct: "0.0%",
-    trendDirection: "stable",
-    lastUpdated: "September 2, 2026",
-    specs: "Brass body chrome wall-mounted single lever shower diverter with 10-year warranty.",
-    wikipediaRef: "https://en.wikipedia.org/wiki/Plumbing_fixture",
-    sourceName: "Indian Plumbing Association Market Data",
-    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=75&auto=format&fit=crop"
-  },
-];
 
 // ─── Compute Full BOQ Calculation ─────────────────────────────────────────────
 export function computeBOQ({ builtUpArea = 1500, city = "Bengaluru", finish = "standard" }) {
@@ -193,6 +57,7 @@ export function computeBOQ({ builtUpArea = 1500, city = "Bengaluru", finish = "s
   const finishInfo = FINISH_RATES[finish] || FINISH_RATES.standard;
 
   const baseCost = bua * finishInfo.rate * cityMultiplier;
+  const grandTotal = Math.round(baseCost);
 
   const breakdown = [
     { category: "Structural & Civil Work", pct: 36, cost: Math.round(baseCost * 0.36) },
@@ -204,15 +69,91 @@ export function computeBOQ({ builtUpArea = 1500, city = "Bengaluru", finish = "s
     { category: "Labour & Project Supervision", pct: 12, cost: Math.round(baseCost * 0.12) },
   ];
 
+  // Verify no category shows 0 and sum equals grand total
+  const sumCategories = breakdown.reduce((acc, b) => acc + b.cost, 0);
+  if (sumCategories !== grandTotal) {
+    const diff = grandTotal - sumCategories;
+    breakdown[0].cost += diff; // Adjust rounding residual to structural
+  }
+
+  // Create detailed categories dictionary for line-item BOQ tables
+  const categoriesDict = {
+    "Structural & Civil Work": {
+      subtotal: Math.round(baseCost * 0.36),
+      items: [
+        { name: "53-Grade OPC Cement (50kg bags)", unit: "Bags", quantity: Math.round(bua * 0.4), rate: 385 * cityMultiplier, amount: Math.round(bua * 0.4 * 385 * cityMultiplier) },
+        { name: "TMT Fe-550D Steel Rebar", unit: "Kg", quantity: Math.round(bua * 3.8), rate: 64.5 * cityMultiplier, amount: Math.round(bua * 3.8 * 64.5 * cityMultiplier) },
+        { name: "Red Clay Bricks / AAC Blocks", unit: "Nos", quantity: Math.round(bua * 8), rate: 8.5 * cityMultiplier, amount: Math.round(bua * 8 * 8.5 * cityMultiplier) },
+      ]
+    },
+    "Flooring & Tiling": {
+      subtotal: Math.round(baseCost * 0.14),
+      items: [
+        { name: "Vitrified Floor Tiles (2x2 ft)", unit: "Sq Ft", quantity: Math.round(bua * 0.85), rate: 65 * cityMultiplier, amount: Math.round(bua * 0.85 * 65 * cityMultiplier) },
+        { name: "Skirting & Tile Adhesive", unit: "Sq Ft", quantity: Math.round(bua * 0.15), rate: 35 * cityMultiplier, amount: Math.round(bua * 0.15 * 35 * cityMultiplier) },
+      ]
+    },
+    "Doors, Windows & Woodwork": {
+      subtotal: Math.round(baseCost * 0.12),
+      items: [
+        { name: "Teakwood Entrance Door & Frame", unit: "Set", quantity: 1, rate: 45000 * cityMultiplier, amount: Math.round(45000 * cityMultiplier) },
+        { name: "UPVC Window Frames & Glass", unit: "Sq Ft", quantity: Math.round(bua * 0.12), rate: 480 * cityMultiplier, amount: Math.round(bua * 0.12 * 480 * cityMultiplier) },
+      ]
+    },
+    "Plumbing & Sanitaryware": {
+      subtotal: Math.round(baseCost * 0.10),
+      items: [
+        { name: "CPVC & PVC Pipes & Fittings", unit: "Rft", quantity: Math.round(bua * 0.5), rate: 45 * cityMultiplier, amount: Math.round(bua * 0.5 * 45 * cityMultiplier) },
+        { name: "Sanitaryware Fixtures & Diverters", unit: "Set", quantity: 3, rate: 8500 * cityMultiplier, amount: Math.round(3 * 8500 * cityMultiplier) },
+      ]
+    },
+    "Electrical & Lighting": {
+      subtotal: Math.round(baseCost * 0.09),
+      items: [
+        { name: "FR Copper Wires & Conduits", unit: "Meters", quantity: Math.round(bua * 1.5), rate: 35 * cityMultiplier, amount: Math.round(bua * 1.5 * 35 * cityMultiplier) },
+        { name: "Modular Switches & Distribution Boards", unit: "Set", quantity: Math.round(bua * 0.05), rate: 450 * cityMultiplier, amount: Math.round(bua * 0.05 * 450 * cityMultiplier) },
+      ]
+    },
+    "Painting & Wall Finishes": {
+      subtotal: Math.round(baseCost * 0.07),
+      items: [
+        { name: "Interior Emulsion & Putty", unit: "Sq Ft", quantity: Math.round(bua * 2.5), rate: 28 * cityMultiplier, amount: Math.round(bua * 2.5 * 28 * cityMultiplier) },
+        { name: "Exterior Weather-Shield Paint", unit: "Sq Ft", quantity: Math.round(bua * 1.2), rate: 35 * cityMultiplier, amount: Math.round(bua * 1.2 * 35 * cityMultiplier) },
+      ]
+    },
+    "Labour & Project Supervision": {
+      subtotal: Math.round(baseCost * 0.12),
+      items: [
+        { name: "Civil & Masonry Labour", unit: "Sq Ft", quantity: bua, rate: 140 * cityMultiplier, amount: Math.round(bua * 140 * cityMultiplier) },
+        { name: "Site Engineer & Supervision", unit: "Months", quantity: 6, rate: 12000 * cityMultiplier, amount: Math.round(6 * 12000 * cityMultiplier) },
+      ]
+    }
+  };
+
+  // Count total line items
+  let totalItemCount = 0;
+  Object.values(categoriesDict).forEach(grp => {
+    totalItemCount += grp.items.length;
+  });
+
   return {
     builtUpArea: bua,
     city,
     finishTier: finishInfo.label,
     perSqftRate: Math.round(finishInfo.rate * cityMultiplier),
-    totalCost: Math.round(baseCost),
-    totalCostFormatted: inr(baseCost),
-    totalCostShort: inrShort(baseCost),
+    totalCost: grandTotal,
+    grand_total: grandTotal,
+    totalCostFormatted: inr(grandTotal),
+    totalCostShort: inrShort(grandTotal),
     breakdown,
+    categories: categoriesDict,
+    item_count: totalItemCount,
+    inputs: {
+      city,
+      finish,
+      built_up_area: bua,
+    },
+    rates_date: RATES_REVIEWED_DATE,
     lastUpdated: RATES_REVIEWED_DATE,
   };
 }

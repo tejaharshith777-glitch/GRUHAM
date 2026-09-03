@@ -5,15 +5,20 @@ import {
   MapPin,
   Menu,
   X,
+  User,
+  LogOut,
+  HardHat,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "../lib/utils";
 import AIAssistant from "./AIAssistant";
+import { useAuth } from "../context/AuthContext";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { currentUser, userProfile, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 80);
@@ -154,20 +159,57 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Desktop CTA */}
             <div className="hidden lg:flex items-center gap-3">
-              <Link
-                to={createPageUrl("DesignLibrary")}
-                className={`text-sm font-medium transition-colors ${
-                  scrolled ? "text-[#1a1a1a]" : "text-white text-shadow-dark"
-                } hover:text-[#B8860B]`}
-              >
-                My Designs
-              </Link>
-              <Link
-                to={createPageUrl("BlueprintGenerator")}
-                className="bg-[#B8860B] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-[#1a1a1a] transition-all duration-300 hover:scale-105 shadow-lg"
-              >
-                Start Free
-              </Link>
+              {currentUser ? (
+                <div className="flex items-center gap-3">
+                  {userProfile?.role === "contractor" ? (
+                    <Link
+                      to="/ContractorDashboard"
+                      className="bg-[#1a1a1a] hover:bg-[#B8860B] text-white px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                    >
+                      <HardHat className="w-3.5 h-3.5 text-[#B8860B]" />
+                      <span>My Dashboard</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/DesignLibrary"
+                      className={`text-sm font-medium transition-colors ${
+                        scrolled ? "text-[#1a1a1a]" : "text-white text-shadow-dark"
+                      } hover:text-[#B8860B]`}
+                    >
+                      My Designs
+                    </Link>
+                  )}
+
+                  <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-gray-200 shadow-sm text-xs font-bold text-gray-800">
+                    <User className="w-3.5 h-3.5 text-[#B8860B]" />
+                    <span className="max-w-[100px] truncate">{userProfile?.name || currentUser.email}</span>
+                    <button
+                      onClick={logout}
+                      title="Sign Out"
+                      className="ml-1 text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Link
+                    to="/auth?mode=login"
+                    className={`text-sm font-medium transition-colors ${
+                      scrolled ? "text-[#1a1a1a]" : "text-white text-shadow-dark"
+                    } hover:text-[#B8860B]`}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/auth"
+                    className="bg-[#B8860B] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-[#1a1a1a] transition-all duration-300 hover:scale-105 shadow-lg"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile hamburger */}

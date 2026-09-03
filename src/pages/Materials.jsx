@@ -16,7 +16,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MATERIALS_CATALOG, inr, RATES_REVIEWED_DATE } from "../lib/boq";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,15 +27,22 @@ const CATEGORIES = [
   "All",
   "Cement & Masonry",
   "Structural Steel",
+  "Sand & Aggregate",
   "Flooring & Tiles",
   "Wood & Doors",
   "Paints & Finishes",
-  "Plumbing & Electrical",
+  "Plumbing & Sanitaryware",
+  "Electrical & Lighting",
+  "Kitchen & Countertops",
 ];
 
 export default function Materials() {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialCategory = queryParams.get("category") || "All";
+
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredMaterials = useMemo(() => {

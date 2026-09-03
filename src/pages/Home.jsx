@@ -1445,32 +1445,34 @@ const designStyles = [
 ];
 function DesignStylesCarousel() {
   const e = useRef(null);
+
+  useEffect(() => {
+    const t = e.current;
+    if (!t) return;
+    let n = 0;
+    const r = 1,
+      o = 50,
+      l = () => {
+        t.scrollLeft >= t.scrollWidth - t.clientWidth
+          ? ((n = 0), (t.scrollLeft = 0))
+          : ((n += r), (t.scrollLeft = n));
+      },
+      c = setInterval(l, o),
+      d = () => clearInterval(c);
+    
+    t.addEventListener("mouseenter", d);
+    t.addEventListener("mouseleave", () => {
+      clearInterval(c);
+      setInterval(l, o);
+    });
+
+    return () => {
+      clearInterval(c);
+    };
+  }, []);
+
   return (
-    useEffect(() => {
-      const t = e.current;
-      if (!t) return;
-      let n = 0;
-      const r = 1,
-        o = 50,
-        l = () => {
-          t.scrollLeft >= t.scrollWidth - t.clientWidth
-            ? ((n = 0), (t.scrollLeft = 0))
-            : ((n += r), (t.scrollLeft = n));
-        },
-        c = setInterval(l, o),
-        d = () => clearInterval(c);
-      return (
-        t.addEventListener("mouseenter", d),
-        t.addEventListener("mouseleave", () => {
-          (clearInterval(c), setInterval(l, o));
-        }),
-        () => {
-          clearInterval(c);
-        }
-      );
-    }, []),
-    (
-      <section className="py-16 md:py-20 bg-white relative overflow-hidden">
+    <section className="py-16 md:py-20 bg-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
             initial={{
@@ -1603,7 +1605,6 @@ function DesignStylesCarousel() {
       `}
         </style>
       </section>
-    )
   );
 }
 // Testimonials: no invented reviews. Honest empty state until real users submit reviews.

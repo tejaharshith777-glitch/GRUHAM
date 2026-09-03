@@ -208,14 +208,43 @@ export default function ContractorRegister() {
 
         const newApplication = {
           id: generatedId,
-          ...e,
+          uid: generatedId,
+          name: e.name,
+          email: e.email,
           phone: `+91 ${phoneClean}`,
+          city: e.city,
+          area: e.area || "",
+          bio: e.bio || "",
+          specialization: e.specializations[0] || "Civil Construction",
+          specializations: e.specializations,
+          experience: Number(e.experience_years) || 1,
+          experience_years: Number(e.experience_years) || 1,
+          completed_projects: Number(e.completed_projects) || 0,
+          price_range: e.price_range || "standard",
+          portfolio: e.portfolio || [],
+          profile_image: h || "",
+          rating: 5.0,
+          verified: true,
+          profile_type: "verified_contractor",
           submitted_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
         };
 
+        // Persist to browser storage
         const existing = JSON.parse(localStorage.getItem("gruham_contractor_applications") || "[]");
         existing.push(newApplication);
         localStorage.setItem("gruham_contractor_applications", JSON.stringify(existing));
+
+        // Persist to real Firestore contractors collection if Firebase is configured
+        try {
+          const { db, isFirebaseConfigured } = await import("../lib/firebase");
+          const { doc, setDoc } = await import("firebase/firestore");
+          if (isFirebaseConfigured && db) {
+            await setDoc(doc(db, "contractors", generatedId), newApplication);
+          }
+        } catch (fsErr) {
+          console.warn("[GRUHAM Firestore] Saved locally, error saving to Firestore:", fsErr);
+        }
 
         l(true);
       } catch (w) {

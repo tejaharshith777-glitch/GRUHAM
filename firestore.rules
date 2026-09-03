@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 1. Users collection: private user profiles keyed by Firebase Auth UID
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // 2. Contractors collection: public contractor directory data
+    // Anyone can view listings; only the contractor (keyed by UID) can edit their own entry
+    match /contractors/{contractorId} {
+      allow read: if true;
+      allow write: if isOwner(contractorId);
+    }
+
+    // 3. Designs collection: user saved blueprints & interior/exterior designs
+    // Scoped strictly to the owning user's Firebase Auth UID
+    match /designs/{designId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+  }
+}
