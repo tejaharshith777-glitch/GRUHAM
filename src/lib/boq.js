@@ -5,7 +5,7 @@
  * All rates in INR. Integrates single source of truth from materialsData.js.
  */
 
-import { MATERIALS_CATALOG, RATES_REVIEWED_DATE } from "./materialsData";
+import { MATERIALS_CATALOG, RATES_REVIEWED_DATE } from "./materialsData.js";
 
 export { MATERIALS_CATALOG, RATES_REVIEWED_DATE };
 
