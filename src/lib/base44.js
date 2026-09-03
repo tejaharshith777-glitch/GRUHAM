@@ -17,7 +17,7 @@
  * built-in offline engine, so the app runs anywhere with zero cost. Set the
  * optional env vars below to use a real model instead - nothing else changes.
  *
- *   VITE_GEMINI_API_KEY    -> Google Gemini key, used by InvokeLLM
+ *   GEMINI_API_KEY         -> Google Gemini server-side key (Vercel env var), used by /api/* endpoints
  *   VITE_IMAGE_MODE=online -> generate images through a public image API
  */
 
@@ -344,29 +344,17 @@ function assistantReply(prompt) {
 }
 
 async function callGemini(prompt, schema) {
-  const key = import.meta.env?.VITE_GEMINI_API_KEY;
-  if (!key || key.includes("your_") || key.trim() === "") return null;
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: schema
-            ? { responseMimeType: "application/json", responseSchema: schema }
-            : undefined,
-        }),
-      }
-    );
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, schema }),
+    });
     if (!res.ok) throw new Error(String(res.status));
     const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error("empty response");
-    return schema ? JSON.parse(text) : text;
+    return data.result || data.text || null;
   } catch (err) {
-    console.warn("[gruham] Gemini call failed, using offline engine", err);
+    console.warn("[gruham] Serverless chat endpoint unavailable, using offline fallback", err);
     return null;
   }
 }
