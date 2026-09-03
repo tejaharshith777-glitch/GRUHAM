@@ -180,15 +180,36 @@ export default function CompoundDesign() {
     try {
       const fullPrompt = `Architectural boundary wall, compound gate, and landscaping design for an Indian house, ${wallStyle} style. ${wallPrompt}. High quality photorealistic rendering.`;
       
-      const { urls } = await base44.integrations.Core.GenerateImageVariations({
-        prompt: fullPrompt,
-        styleToken: wallStyle,
-        count: 3,
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "compound",
+          style: wallStyle,
+          prompt: fullPrompt,
+          count: 3,
+        }),
       });
 
-      setGeneratedWallImages(urls || []);
+      if (!res.ok) {
+        if (res.status === 429) {
+          setToast("Rate limit reached (max 20/hr). Try again later.");
+          setTimeout(() => setToast(""), 4000);
+          setIsGeneratingWall(false);
+          return;
+        }
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setGeneratedWallImages(data.urls || []);
     } catch (err) {
       console.error("Wall generation error:", err);
+      const { urls } = await base44.integrations.Core.GenerateImageVariations({
+        prompt: `Compound wall ${wallStyle}`,
+        count: 3,
+      });
+      setGeneratedWallImages(urls || []);
     }
     setIsGeneratingWall(false);
   };

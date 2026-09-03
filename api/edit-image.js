@@ -1,22 +1,35 @@
 /**
  * Vercel Serverless Function: /api/edit-image
- * Handles editing and restyling an existing design image via server-side AI processing.
+ * Handles image-to-image restyling & text-instructed edit regeneration.
+ * Includes rate limiting and server-side Gemini processing.
  */
+
+import { checkRateLimit } from "./_rateLimiter.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed. Only POST requests are supported." });
   }
 
-  try {
-    const { originalImageUrl, prompt, styleToken, modifications } = req.body || {};
+  // Rate Limiting Check
+  const rateLimit = checkRateLimit(req);
+  if (rateLimit.exceeded) {
+    return res.status(429).json({
+      error: "Rate Limit Exceeded",
+      message: rateLimit.message,
+      retryAfterSeconds: rateLimit.retryAfterSeconds,
+    });
+  }
 
-    if (!prompt && !modifications) {
-      return res.status(400).json({ error: "Missing required parameter: 'prompt' or 'modifications'" });
+  try {
+    const { imageUrl, imageBase64, editInstruction, styleToken = "modern" } = req.body || {};
+
+    if (!editInstruction) {
+      return res.status(400).json({ error: "Missing required parameter: 'editInstruction'" });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    let refinedPrompt = `Restyle image: ${prompt || "re-imagine design"}. Modifications: ${modifications || "enhanced materials and lighting"}.`;
+    let refinedPrompt = `Modify design render: ${editInstruction}. Maintain room architecture in ${styleToken} style.`;
 
     if (apiKey && apiKey.trim() !== "") {
       try {
@@ -30,7 +43,7 @@ export default async function handler(req, res) {
                 role: "user",
                 parts: [
                   {
-                    text: `Compose a prompt for modifying an architectural render: Base style "${styleToken || "modern"}", requested changes "${modifications || prompt}".`,
+                    text: `Refine this architectural edit instruction into a 40-word photorealistic image modification prompt: "${editInstruction}". Maintain building structure.`,
                   },
                 ],
               },
@@ -44,7 +57,7 @@ export default async function handler(req, res) {
           if (text) refinedPrompt = text.trim();
         }
       } catch (err) {
-        console.warn("[API/edit-image] Gemini prompt refinement error:", err.message);
+        console.warn("[API/edit-image] Gemini edit refinement error:", err.message);
       }
     }
 
@@ -55,9 +68,10 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      originalImageUrl,
+      originalImageUrl: imageUrl || null,
       editedImageUrl: editedUrl,
       promptUsed: refinedPrompt,
+      remainingGenerations: rateLimit.remaining,
     });
   } catch (err) {
     console.error("[API/edit-image] Error:", err);

@@ -75,17 +75,39 @@ export default function InteriorDesign() {
 
       const fullPrompt = `${roomName} interior design, ${styleObj.name} style. ${prompt ? `Requirements: ${prompt}.` : ""} ${refImage ? "Maintain layout structure of reference uploaded photo." : ""}`;
 
-      // Call multi-variation engine with strict style token locking
-      const { urls } = await base44.integrations.Core.GenerateImageVariations({
-        prompt: fullPrompt,
-        styleToken: selectedStyle,
-        count: 4,
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "interior",
+          roomType: roomName,
+          style: selectedStyle,
+          prompt: fullPrompt,
+          count: 4,
+        }),
       });
 
-      setGeneratedVariations(urls || []);
+      if (!res.ok) {
+        if (res.status === 429) {
+          setToast("Rate limit reached (max 20/hr). Try again later.");
+          setTimeout(() => setToast(""), 4000);
+          setIsGenerating(false);
+          return;
+        }
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setGeneratedVariations(data.urls || []);
       setActiveVariationIdx(0);
     } catch (err) {
       console.error("Generation error:", err);
+      // Fallback
+      const { urls } = await base44.integrations.Core.GenerateImageVariations({
+        prompt: `${selectedRoom} ${selectedStyle}`,
+        count: 4,
+      });
+      setGeneratedVariations(urls || []);
     }
     setIsGenerating(false);
   };

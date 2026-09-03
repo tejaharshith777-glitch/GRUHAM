@@ -72,16 +72,37 @@ export default function ExteriorDesign() {
 
       const fullPrompt = `${typeName} exterior design, ${floors} floors, ${styleObj.name} style. Wall finish: ${wallFinish}. ${prompt ? `Details: ${prompt}.` : ""} ${refImage ? "Maintain original building massing & structure from uploaded reference image." : ""}`;
 
-      const { urls } = await base44.integrations.Core.GenerateImageVariations({
-        prompt: fullPrompt,
-        styleToken: selectedStyle,
-        count: 4,
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "exterior",
+          style: selectedStyle,
+          prompt: fullPrompt,
+          count: 4,
+        }),
       });
 
-      setGeneratedVariations(urls || []);
+      if (!res.ok) {
+        if (res.status === 429) {
+          setToast("Rate limit reached (max 20/hr). Try again later.");
+          setTimeout(() => setToast(""), 4000);
+          setIsGenerating(false);
+          return;
+        }
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setGeneratedVariations(data.urls || []);
       setActiveVariationIdx(0);
     } catch (err) {
       console.error("Generation error:", err);
+      const { urls } = await base44.integrations.Core.GenerateImageVariations({
+        prompt: `${selectedType} ${selectedStyle}`,
+        count: 4,
+      });
+      setGeneratedVariations(urls || []);
     }
     setIsGenerating(false);
   };
