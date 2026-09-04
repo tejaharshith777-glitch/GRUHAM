@@ -54,6 +54,9 @@ export default function InteriorDesign() {
   const [toast, setToast] = useState("");
   const fileInputRef = useRef(null);
 
+  const [editPrompt, setEditPrompt] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -83,14 +86,16 @@ export default function InteriorDesign() {
           roomType: roomName,
           style: selectedStyle,
           prompt: fullPrompt,
+          referenceImageBase64: refImage,
           count: 4,
         }),
       });
 
       if (!res.ok) {
         if (res.status === 429) {
-          setToast("Rate limit reached (max 20/hr). Try again later.");
-          setTimeout(() => setToast(""), 4000);
+          const errData = await res.json().catch(() => ({}));
+          setToast(errData.message || "Rate limit reached. Please try again later.");
+          setTimeout(() => setToast(""), 5000);
           setIsGenerating(false);
           return;
         }
@@ -112,6 +117,50 @@ export default function InteriorDesign() {
     setIsGenerating(false);
   };
 
+  const handleEditImage = async () => {
+    const currentUrl = generatedVariations[activeVariationIdx];
+    if (!currentUrl || !editPrompt.trim()) return;
+
+    setIsEditing(true);
+    try {
+      const res = await fetch("/api/edit-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageUrl: currentUrl,
+          editInstruction: editPrompt,
+          styleToken: selectedStyle,
+        }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          const errData = await res.json().catch(() => ({}));
+          setToast(errData.message || "Rate limit reached. Please try again later.");
+          setTimeout(() => setToast(""), 5000);
+          setIsEditing(false);
+          return;
+        }
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.editedImageUrl) {
+        const updated = [...generatedVariations];
+        updated[activeVariationIdx] = data.editedImageUrl;
+        setGeneratedVariations(updated);
+        setEditPrompt("");
+        setToast("Image edited successfully!");
+        setTimeout(() => setToast(""), 3500);
+      }
+    } catch (err) {
+      console.error("Edit error:", err);
+      setToast("Failed to edit image. Try again.");
+      setTimeout(() => setToast(""), 3500);
+    }
+    setIsEditing(false);
+  };
+
   const handleSave = async (urlToSave) => {
     const activeUrl = urlToSave || generatedVariations[activeVariationIdx];
     if (!activeUrl) return;
@@ -119,15 +168,6 @@ export default function InteriorDesign() {
     const styleName = interiorStyles.find((s) => s.id === selectedStyle)?.name || "Modern";
     const roomName = interiorRooms.find((r) => r.id === selectedRoom)?.name || "Living Room";
     const title = `${styleName} ${roomName}`;
-
-    const newDesign = {
-      id: "int_" + Date.now(),
-      title,
-      design_type: "interior",
-      style: selectedStyle,
-      image_url: activeUrl,
-      created_at: new Date().toISOString(),
-    };
 
     try {
       const { saveDesign } = await import("../lib/designService");
@@ -352,6 +392,34 @@ export default function InteriorDesign() {
                         </span>
                       </button>
                     ))}
+                  </div>
+
+                  {/* AI Image-to-Image Edit Section */}
+                  <div className="pt-4 border-t border-gray-100 space-y-3">
+                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                      <WandSparkles className="w-3.5 h-3.5 text-[#B8860B]" />
+                      Edit Selected Render (AI Restyle)
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={editPrompt}
+                        onChange={(e) => setEditPrompt(e.target.value)}
+                        placeholder="E.g., Make the accent wall sage green, add warm cove lighting..."
+                        className="rounded-xl border-gray-200 text-xs h-10 flex-1"
+                        onKeyDown={(e) => e.key === "Enter" && handleEditImage()}
+                      />
+                      <Button
+                        onClick={handleEditImage}
+                        disabled={isEditing || !editPrompt.trim()}
+                        className="bg-[#1a1a1a] hover:bg-black text-[#B8860B] rounded-xl text-xs font-bold px-4 h-10"
+                      >
+                        {isEditing ? (
+                          <LoaderCircle className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Apply Edit"
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}

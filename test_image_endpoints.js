@@ -20,75 +20,99 @@ function createMockRes() {
 }
 
 async function runTests() {
+  console.log("==================================================");
   console.log("=== TESTING IMAGE GENERATION & EDIT ENDPOINTS ===");
+  console.log("==================================================\n");
+
+  const testIp = "test-session-ip-" + Date.now();
 
   // 1. Interior Image Request Test
   const reqInterior = {
     method: "POST",
-    headers: { "x-forwarded-for": "test-ip-123" },
+    headers: { "x-forwarded-for": testIp },
     body: {
       type: "interior",
       roomType: "Living Room",
-      style: "modern_kerala",
-      prompt: "Luxury Living Room with teakwood furniture and warm brass accent lights",
+      style: "traditional_indian",
+      prompt: "Luxury Indian Living Room with teakwood furniture and warm ambient brass lighting",
       count: 1,
     },
   };
   const resInterior = createMockRes();
   await generateImageHandler(reqInterior, resInterior);
-  console.log("\n1. Interior Design Request:");
-  console.log("Status:", resInterior.getStatusCode());
-  console.log("Returned Image URL:", resInterior.getData()?.url);
+  const interiorData = resInterior.getData();
+  console.log("1. INTERIOR DESIGN REQUEST:");
+  console.log("   Status:", resInterior.getStatusCode());
+  console.log("   Returned Image URL:", interiorData?.url);
+  console.log("   Enhanced Prompt:", interiorData?.enhancedPrompt);
+  console.log("");
 
   // 2. Exterior Image Request Test
   const reqExterior = {
     method: "POST",
-    headers: { "x-forwarded-for": "test-ip-123" },
+    headers: { "x-forwarded-for": testIp },
     body: {
       type: "exterior",
       style: "contemporary",
-      prompt: "Modern 2-storey Indian villa facade with glass balconies and stone cladding",
+      prompt: "Modern 2-storey Indian villa front elevation with stone cladding and teakwood portico",
       count: 1,
     },
   };
   const resExterior = createMockRes();
   await generateImageHandler(reqExterior, resExterior);
-  console.log("\n2. Exterior Design Request:");
-  console.log("Status:", resExterior.getStatusCode());
-  console.log("Returned Image URL:", resExterior.getData()?.url);
+  const exteriorData = resExterior.getData();
+  console.log("2. EXTERIOR DESIGN REQUEST:");
+  console.log("   Status:", resExterior.getStatusCode());
+  console.log("   Returned Image URL:", exteriorData?.url);
+  console.log("   Enhanced Prompt:", exteriorData?.enhancedPrompt);
+  console.log("");
 
-  // 3. Compound Wall Image Request Test
+  // 3. Compound / Boundary Wall Request Test
   const reqCompound = {
     method: "POST",
-    headers: { "x-forwarded-for": "test-ip-123" },
+    headers: { "x-forwarded-for": testIp },
     body: {
       type: "compound",
-      style: "contemporary",
-      prompt: "Boundary wall with motorized sliding teakwood gate and pillar lanterns",
+      style: "south_indian",
+      prompt: "Boundary wall with motorized sliding teakwood gate, pillar lanterns, and landscaping",
       count: 1,
     },
   };
   const resCompound = createMockRes();
   await generateImageHandler(reqCompound, resCompound);
-  console.log("\n3. Compound / Boundary Wall Request:");
-  console.log("Status:", resCompound.getStatusCode());
-  console.log("Returned Image URL:", resCompound.getData()?.url);
+  const compoundData = resCompound.getData();
+  console.log("3. COMPOUND / BOUNDARY WALL REQUEST:");
+  console.log("   Status:", resCompound.getStatusCode());
+  console.log("   Returned Image URL:", compoundData?.url);
+  console.log("   Enhanced Prompt:", compoundData?.enhancedPrompt);
+  console.log("");
 
-  // 4. Edit Image Request Test
+  // 4. Image Edit Request Test
   const reqEdit = {
     method: "POST",
-    headers: { "x-forwarded-for": "test-ip-123" },
+    headers: { "x-forwarded-for": testIp },
     body: {
-      imageUrl: resInterior.getData()?.url,
-      editInstruction: "Change the living room accent wall to sage green and add warm ambient cove lights",
-      styleToken: "modern_kerala",
+      imageUrl: interiorData?.url,
+      editInstruction: "Change the accent wall to sage green and add warm ambient cove lights",
+      styleToken: "traditional_indian",
     },
   };
   const resEdit = createMockRes();
   await editImageHandler(reqEdit, resEdit);
-  console.log("\n4. Image Edit Request:");
-  console.log("Status:", resEdit.getStatusCode());
-  console.log("Edited Image URL:", resEdit.getData()?.editedImageUrl);
+  const editData = resEdit.getData();
+  console.log("4. IMAGE EDIT REQUEST:");
+  console.log("   Status:", resEdit.getStatusCode());
+  console.log("   Edited Image URL:", editData?.editedImageUrl);
+  console.log("   Prompt Used:", editData?.promptUsed);
+  console.log("");
+
+  console.log("==================================================");
+  console.log("SUMMARY OF TESTED IMAGE URLS:");
+  console.log("Interior URL:", interiorData?.url);
+  console.log("Exterior URL:", exteriorData?.url);
+  console.log("Compound URL:", compoundData?.url);
+  console.log("Edited URL:  ", editData?.editedImageUrl);
+  console.log("==================================================");
 }
 
 runTests();

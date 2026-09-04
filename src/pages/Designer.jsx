@@ -240,12 +240,31 @@ export default function Designer() {
             fullPrompt = n
               ? `Interior design visualization: Transform this ${G} into a beautiful ${A} style space. Maintain original room layout.`
               : `Interior design visualization: Create a beautiful ${G} in ${A} style with authentic furniture, lighting, and colors.`;
-          const F = await base44.integrations.Core.GenerateImage({
-            prompt: fullPrompt,
+
+          const res = await fetch("/api/generate-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "interior",
+              roomType: G,
+              style: o,
+              prompt: fullPrompt,
+              referenceImageBase64: n || e,
+              count: 1,
+            }),
           });
-          p(F.url);
+
+          if (res.ok) {
+            const data = await res.json();
+            p(data.url);
+          } else {
+            const F = await base44.integrations.Core.GenerateImage({ prompt: fullPrompt });
+            p(F.url);
+          }
         } catch (A) {
           console.error("Generation error:", A);
+          const F = await base44.integrations.Core.GenerateImage({ prompt: o + " " + c });
+          p(F.url);
         }
         y(false);
       }

@@ -1,17 +1,19 @@
 /**
  * Vercel Serverless Function: /api/edit-image
  * Handles image-to-image restyling & text-instructed edit regeneration.
- * Includes rate limiting and server-side Gemini processing.
+ * Uses Gemini API server-side (process.env.GEMINI_API_KEY) and uploads edited images to Supabase Storage ('design-images').
+ * Includes per-session/IP rate limiting.
  */
 
 import { checkRateLimit } from "./_rateLimiter.js";
+import { uploadImageToSupabase } from "./_supabaseServer.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed. Only POST requests are supported." });
   }
 
-  // Rate Limiting Check
+  // 1. Rate Limiting Check
   const rateLimit = checkRateLimit(req);
   if (rateLimit.exceeded) {
     return res.status(429).json({
@@ -29,9 +31,11 @@ export default async function handler(req, res) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    let refinedPrompt = `Modify design render: ${editInstruction}. Maintain room architecture in ${styleToken} style.`;
+    let refinedPrompt = `Architectural image edit: ${editInstruction}. Maintain building geometry in ${styleToken} style.`;
+    let editedImageRaw = null;
 
-    if (apiKey && apiKey.trim() !== "") {
+    // 2. Server-side Gemini processing if key exists
+    if (apiKey && apiKey.trim() !== "" && apiKey !== "your_gemini_api_key_here") {
       try {
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
         const aiRes = await fetch(geminiUrl, {
@@ -43,7 +47,7 @@ export default async function handler(req, res) {
                 role: "user",
                 parts: [
                   {
-                    text: `Refine this architectural edit instruction into a 40-word photorealistic image modification prompt: "${editInstruction}". Maintain building structure.`,
+                    text: `Refine this architectural edit instruction into a 45-word photorealistic image modification prompt: "${editInstruction}". Preserve original structure while applying changes (e.g. materials, wall colors, lighting, landscaping).`,
                   },
                 ],
               },
@@ -59,17 +63,49 @@ export default async function handler(req, res) {
       } catch (err) {
         console.warn("[API/edit-image] Gemini edit refinement error:", err.message);
       }
+
+      // Try Imagen 3 edit / generation call
+      try {
+        const imagenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+        const imagenRes = await fetch(imagenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            instances: [{ prompt: refinedPrompt }],
+            parameters: {
+              sampleCount: 1,
+              aspectRatio: "4:3",
+              outputOptions: { mimeType: "image/jpeg" },
+            },
+          }),
+        });
+
+        if (imagenRes.ok) {
+          const imagenData = await imagenRes.json();
+          const b64 = imagenData?.predictions?.[0]?.bytesBase64Encoded;
+          if (b64) {
+            editedImageRaw = `data:image/jpeg;base64,${b64}`;
+          }
+        }
+      } catch (err) {
+        console.warn("[API/edit-image] Imagen call fallback:", err.message);
+      }
     }
 
-    const newSeed = Math.floor(Math.random() * 900000) + 100000;
-    const editedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-      refinedPrompt.slice(0, 900)
-    )}?width=1024&height=768&nologo=true&seed=${newSeed}`;
+    if (!editedImageRaw) {
+      const newSeed = Math.floor(Math.random() * 900000) + 100000;
+      editedImageRaw = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+        refinedPrompt.slice(0, 900)
+      )}?width=1024&height=768&nologo=true&seed=${newSeed}`;
+    }
+
+    // 3. Upload edited image to Supabase Storage 'design-images' bucket
+    const publicUrl = await uploadImageToSupabase(editedImageRaw, "edit");
 
     return res.status(200).json({
       success: true,
       originalImageUrl: imageUrl || null,
-      editedImageUrl: editedUrl,
+      editedImageUrl: publicUrl || editedImageRaw,
       promptUsed: refinedPrompt,
       remainingGenerations: rateLimit.remaining,
     });

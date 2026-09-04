@@ -155,7 +155,9 @@ export default function CompoundDesign() {
   // AI Compound / Boundary Wall Generator State
   const [wallStyle, setWallStyle] = useState("traditional_indian");
   const [wallPrompt, setWallPrompt] = useState("");
+  const [wallEditPrompt, setWallEditPrompt] = useState("");
   const [isGeneratingWall, setIsGeneratingWall] = useState(false);
+  const [isEditingWall, setIsEditingWall] = useState(false);
   const [generatedWallImages, setGeneratedWallImages] = useState([]);
 
   // Filter Catalog
@@ -193,8 +195,9 @@ export default function CompoundDesign() {
 
       if (!res.ok) {
         if (res.status === 429) {
-          setToast("Rate limit reached (max 20/hr). Try again later.");
-          setTimeout(() => setToast(""), 4000);
+          const errData = await res.json().catch(() => ({}));
+          setToast(errData.message || "Rate limit reached. Please try again later.");
+          setTimeout(() => setToast(""), 5000);
           setIsGeneratingWall(false);
           return;
         }
@@ -212,6 +215,68 @@ export default function CompoundDesign() {
       setGeneratedWallImages(urls || []);
     }
     setIsGeneratingWall(false);
+  };
+
+  const handleEditCompoundWall = async (index = 0) => {
+    const currentUrl = generatedWallImages[index];
+    if (!currentUrl || !wallEditPrompt.trim()) return;
+
+    setIsEditingWall(true);
+    try {
+      const res = await fetch("/api/edit-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageUrl: currentUrl,
+          editInstruction: wallEditPrompt,
+          styleToken: wallStyle,
+        }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          const errData = await res.json().catch(() => ({}));
+          setToast(errData.message || "Rate limit reached. Please try again later.");
+          setTimeout(() => setToast(""), 5000);
+          setIsEditingWall(false);
+          return;
+        }
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.editedImageUrl) {
+        const updated = [...generatedWallImages];
+        updated[index] = data.editedImageUrl;
+        setGeneratedWallImages(updated);
+        setWallEditPrompt("");
+        setToast("Compound wall render edited successfully!");
+        setTimeout(() => setToast(""), 3500);
+      }
+    } catch (err) {
+      console.error("Wall edit error:", err);
+      setToast("Failed to edit compound render. Try again.");
+      setTimeout(() => setToast(""), 3500);
+    }
+    setIsEditingWall(false);
+  };
+
+  const handleSaveCompoundWall = async (imageUrl) => {
+    if (!imageUrl) return;
+    try {
+      const { saveDesign } = await import("../lib/designService");
+      await saveDesign({
+        title: `Compound Wall (${wallStyle})`,
+        design_type: "compound",
+        style: wallStyle,
+        image_url: imageUrl,
+        prompt: wallPrompt || "Compound & boundary wall design",
+      });
+      setToast("Saved to 'My Designs'!");
+      setTimeout(() => setToast(""), 3500);
+    } catch (err) {
+      console.error("Save error:", err);
+    }
   };
 
   const handleInquirySubmit = (e) => {
@@ -452,14 +517,52 @@ export default function CompoundDesign() {
             </div>
           </div>
 
-          {/* Wall Renders Grid */}
+          {/* Wall Renders Grid & Edit Section */}
           {generatedWallImages.length > 0 && (
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
-              {generatedWallImages.map((url, i) => (
-                <div key={i} className="aspect-[16/10] rounded-2xl overflow-hidden shadow border border-gray-200">
-                  <img src={url} alt={`Compound ${i + 1}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
+            <div className="space-y-4 pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {generatedWallImages.map((url, i) => (
+                  <div key={i} className="rounded-2xl overflow-hidden shadow border border-gray-200 bg-gray-50 flex flex-col">
+                    <div className="aspect-[16/10] relative group overflow-hidden">
+                      <img src={url} alt={`Compound ${i + 1}`} className="w-full h-full object-cover" />
+                      <div className="absolute bottom-2 right-2 flex gap-1">
+                        <button
+                          onClick={() => handleSaveCompoundWall(url)}
+                          className="bg-[#1a1a1a] hover:bg-black text-[#B8860B] px-3 py-1.5 rounded-full text-[11px] font-bold shadow"
+                        >
+                          Save
+                        </button>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="bg-[#B8860B] hover:bg-[#997320] text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow"
+                        >
+                          HD
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Edit Instruction for Compound Wall */}
+              <div className="pt-2 flex flex-col sm:flex-row gap-2 items-center bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                <Input
+                  value={wallEditPrompt}
+                  onChange={(e) => setWallEditPrompt(e.target.value)}
+                  placeholder="Edit compound design (e.g., add teakwood gate, add warm pillar lanterns)..."
+                  className="rounded-xl border-gray-200 text-xs h-10 flex-1 bg-white"
+                  onKeyDown={(e) => e.key === "Enter" && handleEditCompoundWall(0)}
+                />
+                <Button
+                  onClick={() => handleEditCompoundWall(0)}
+                  disabled={isEditingWall || !wallEditPrompt.trim()}
+                  className="bg-[#1a1a1a] hover:bg-black text-[#B8860B] rounded-xl text-xs font-bold px-4 h-10 w-full sm:w-auto"
+                >
+                  {isEditingWall ? "Editing..." : "Apply Edit Instruction"}
+                </Button>
+              </div>
             </div>
           )}
         </div>

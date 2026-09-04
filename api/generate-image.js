@@ -1,17 +1,19 @@
 /**
  * Vercel Serverless Function: /api/generate-image
  * Generates photorealistic architectural interior, exterior, and compound design renders.
- * Includes rate limiting and server-side Gemini processing.
+ * Uses Gemini API server-side (process.env.GEMINI_API_KEY) and uploads results to Supabase Storage ('design-images').
+ * Includes per-session/IP rate limiting.
  */
 
 import { checkRateLimit } from "./_rateLimiter.js";
+import { uploadImageToSupabase } from "./_supabaseServer.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed. Only POST requests are supported." });
   }
 
-  // Rate Limiting Check
+  // 1. Rate Limiting Check
   const rateLimit = checkRateLimit(req);
   if (rateLimit.exceeded) {
     return res.status(429).json({
@@ -45,12 +47,15 @@ export default async function handler(req, res) {
       }
     }
 
-    // Enhance prompt via Gemini server-side if key is configured
     let enhancedPrompt = basePrompt;
-    if (apiKey && apiKey.trim() !== "") {
+    let generatedImageRaw = null;
+
+    // 2. Server-side Gemini integration if API key exists
+    if (apiKey && apiKey.trim() !== "" && apiKey !== "your_gemini_api_key_here") {
+      // First try prompt refinement with Gemini 2.0 Flash
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-        const aiRes = await fetch(geminiUrl, {
+        const geminiRefineUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const aiRes = await fetch(geminiRefineUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -59,7 +64,7 @@ export default async function handler(req, res) {
                 role: "user",
                 parts: [
                   {
-                    text: `Refine this architectural ${type} design prompt into a photorealistic architectural rendering prompt under 50 words: "${basePrompt}".`,
+                    text: `Refine this architectural ${type} design prompt into a detailed, photorealistic 8K architectural rendering prompt under 60 words: "${basePrompt}". Focus on Indian materials, textures, and lighting.`,
                   },
                 ],
               },
@@ -73,20 +78,56 @@ export default async function handler(req, res) {
           if (text) enhancedPrompt = text.trim();
         }
       } catch (err) {
-        console.warn("[API/generate-image] Gemini prompt refinement error:", err.message);
+        console.warn("[API/generate-image] Gemini prompt refinement fallback:", err.message);
+      }
+
+      // Try Gemini Imagen 3 image generation endpoint
+      try {
+        const imagenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+        const imagenRes = await fetch(imagenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            instances: [{ prompt: enhancedPrompt }],
+            parameters: {
+              sampleCount: 1,
+              aspectRatio: "4:3",
+              outputOptions: { mimeType: "image/jpeg" },
+            },
+          }),
+        });
+
+        if (imagenRes.ok) {
+          const imagenData = await imagenRes.json();
+          const b64 = imagenData?.predictions?.[0]?.bytesBase64Encoded;
+          if (b64) {
+            generatedImageRaw = `data:image/jpeg;base64,${b64}`;
+          }
+        }
+      } catch (err) {
+        console.warn("[API/generate-image] Imagen 3 call fallback:", err.message);
       }
     }
 
     const baseSeed = seed || Math.floor(Math.random() * 800000) + 100000;
-    const urls = [];
-
     const numVariations = Math.min(Math.max(1, parseInt(count) || 1), 4);
+    const finalUrls = [];
+
+    // 3. Generate image variations & Upload to Supabase Storage 'design-images'
     for (let i = 0; i < numVariations; i++) {
-      const currentSeed = baseSeed + i * 1337;
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-        `${enhancedPrompt}, variation ${i + 1}`.slice(0, 900)
-      )}?width=1024&height=768&nologo=true&seed=${currentSeed}`;
-      urls.push(imageUrl);
+      let rawSource;
+      if (i === 0 && generatedImageRaw) {
+        rawSource = generatedImageRaw;
+      } else {
+        const currentSeed = baseSeed + i * 1337;
+        rawSource = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+          `${enhancedPrompt}, architectural render variation ${i + 1}`.slice(0, 900)
+        )}?width=1024&height=768&nologo=true&seed=${currentSeed}`;
+      }
+
+      // Upload generated image to Supabase Storage bucket 'design-images'
+      const publicUrl = await uploadImageToSupabase(rawSource, `${type}_${style}`);
+      finalUrls.push(publicUrl || rawSource);
     }
 
     return res.status(200).json({
@@ -94,8 +135,8 @@ export default async function handler(req, res) {
       type,
       roomType,
       style,
-      url: urls[0],
-      urls,
+      url: finalUrls[0],
+      urls: finalUrls,
       enhancedPrompt,
       remainingGenerations: rateLimit.remaining,
     });
