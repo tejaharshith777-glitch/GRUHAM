@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../lib/utils";
+import FAQSection from "@/components/FAQSection";
 import {
   AlertTriangle,
   ArrowRight,
@@ -235,6 +236,9 @@ export default function HowItWorks() {
             </motion.div>
           ))}
         </div>
+
+        {/* FAQ Section */}
+        <FAQSection />
 
         {/* Bottom CTA */}
         <motion.div

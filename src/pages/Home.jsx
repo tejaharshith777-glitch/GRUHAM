@@ -25,6 +25,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "../lib/utils";
 import { computeBOQ, CITY_NAMES, inrShort } from "@/lib/boq";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import FAQSection from "@/components/FAQSection";
 
 const heroSlides = [
   {
@@ -1760,6 +1761,7 @@ export default function Home() {
         <HowItWorks />
         <LimitedOfferCTA />
         <TrustStats />
+        <FAQSection />
         <Testimonials />
       </div>
     </div>

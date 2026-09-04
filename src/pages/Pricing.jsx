@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Disclaimer from "@/components/Disclaimer";
 import { createPageUrl } from "../lib/utils";
+import FAQSection from "@/components/FAQSection";
 
 export default function Pricing() {
   const navigate = useNavigate();
@@ -220,6 +221,9 @@ export default function Pricing() {
 
           </div>
         </div>
+
+        {/* FAQ Section */}
+        <FAQSection subtitle="Questions about BOQ estimation, city material rates, or EMI calculation?" />
       </div>
     </div>
   );
